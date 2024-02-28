@@ -51,7 +51,7 @@ namespace AlmostSpace
             orbitTexture = Content.Load<Texture2D>("OrbitPiece");
 
             earth = new Planet(earthTexture, 4E14f, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2));
-            rocket = new Rocket(rocketTexture, orbitTexture, 50, earth, GraphicsDevice);
+            rocket = new Rocket(rocketTexture, orbitTexture, 50, earth);
         }
 
         protected override void Update(GameTime gameTime)
@@ -84,11 +84,12 @@ namespace AlmostSpace
             GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
-            //_spriteBatch.Begin();
+            _spriteBatch.Begin();
             //_spriteBatch.Draw(ballTexture, ballPosition, null, Color.White, 0f, new Vector2(ballTexture.Width / 2, ballTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
             //_spriteBatch.Draw(earthTexture, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2), null, Color.White, 0f, new Vector2(earthTexture.Width / 2, earthTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
-            //_spriteBatch.DrawString(uiFont, "Angle: " + displayAngle, new Vector2(50, 50), Color.White);
-            //_spriteBatch.End();
+            _spriteBatch.DrawString(uiFont, "Height: " + rocket.height, new Vector2(50, 50), Color.White);
+            _spriteBatch.DrawString(uiFont, "Zenith: " + rocket.zenith, new Vector2(50, 75), Color.White);
+            _spriteBatch.End();
 
             earth.Draw(_spriteBatch);
 

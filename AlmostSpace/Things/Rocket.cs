@@ -12,8 +12,10 @@ using System.Diagnostics;
 
 namespace AlmostSpace.Things
 {
+    // Represents the rocket that the user controls
     internal class Rocket
     {
+        // Fields for tracking the rocket's current state
         Vector2 velocity;
         Vector2 position;
         float angle;
@@ -25,7 +27,12 @@ namespace AlmostSpace.Things
 
         Planet planetOrbiting;
 
-        public Rocket(Texture2D texture, Texture2D orbitTexture, float mass, Planet startingPlanet, GraphicsDevice graphicsDevice)
+        public float height;
+        public float zenith = 0;
+
+        // Constructs a new Rocket object with the given texture, orbit
+        // segment texture, mass, and the planet it starts around.
+        public Rocket(Texture2D texture, Texture2D orbitTexture, float mass, Planet startingPlanet)
         {
             this.orbit = new List<OrbitSprite>();
             this.texture = texture;
@@ -35,9 +42,11 @@ namespace AlmostSpace.Things
             velocity = new Vector2(30, 0);
             position = new Vector2(900, 200);
             this.planetOrbiting = startingPlanet;
-            calculateOrbit(200, 300, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y);
+            generateTrajectory(200, 200, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y);
         }
 
+        // Returns a vector representing the force of gravity acting
+        // on the rocket in the x and y directions
         Vector2 computeForce()
         {
             Vector2 planetPosition = planetOrbiting.getPosition();
@@ -45,6 +54,7 @@ namespace AlmostSpace.Things
             float xDist = (position.X - planetPosition.X);
             float yDist = -(position.Y - planetPosition.Y);
             float distToCenter = (float)Math.Pow(Math.Pow(xDist, 2) + Math.Pow(yDist, 2), 0.5);
+            height = distToCenter;
             //Debug.WriteLine("Distance:" + xDist);
 
             if (distToCenter < 10)
@@ -54,19 +64,34 @@ namespace AlmostSpace.Things
 
             float universalGravity = 6.67E-11f;
             float totalForce = (universalGravity * massPlanet * mass) / (distToCenter * distToCenter);
-            float angleToPlanet = (float)System.Math.Atan2(yDist, xDist);
+            float angleToPlanet = (float)Math.Atan2(yDist, xDist);
 
             //if (yDist < 0 && xDist < 0 || yDist > 0 && xDist < 0)
             //{
             //    angle += MathHelper.Pi;
             //}
 
-            float xForce = -totalForce * (float)System.Math.Cos(angleToPlanet);
-            float yForce = totalForce * (float)System.Math.Sin(angleToPlanet);
+            float xForce = -totalForce * (float)Math.Cos(angleToPlanet);
+            float yForce = totalForce * (float)Math.Sin(angleToPlanet);
+
+            updateOrbit(angleToPlanet);
 
             return new Vector2(xForce, yForce);
         }
 
+        public void updateOrbit(float angleToPlanet)
+        {
+            // no work :(
+            float velocityAngle = (float)Math.Atan2(velocity.Y, velocity.X);
+            float zenith = MathHelper.Pi - angleToPlanet - velocityAngle;
+            this.zenith = zenith * 180 / MathHelper.Pi;
+            angle = MathHelper.Pi - angleToPlanet;
+        }
+
+        // Checks for direction and throttle keyboard inputs and updates the
+        // velocity and position of the rocket based on the forces acting on it.
+        // Takes the time since the last frame as a parameter to make sure
+        // calculations are based on real time.
         public void Update(double frameTime)
         {
             Vector2 forces = computeForce();
@@ -95,9 +120,11 @@ namespace AlmostSpace.Things
             position.X += velocity.X * (float)frameTime;
             position.Y += velocity.Y * (float)frameTime;
             // draws trail behind rocket
-            //orbit.Add(new OrbitSprite(orbitTexture, position));
+            orbit.Add(new OrbitSprite(orbitTexture, position));
         }
 
+        // Draws the rocket sprite and orbit approximation to the screen
+        // using the given SpriteBatch object
         public void Draw(SpriteBatch spriteBatch)
         {
             foreach (OrbitSprite pixel in orbit)
@@ -109,18 +136,25 @@ namespace AlmostSpace.Things
             spriteBatch.End();
         }
 
-        public void calculateOrbit(int a, int b, int h, int k)
+        // Generates a list of OrbitSprite objects arranged in an elipse with
+        // the given semi-major and semi-minor axes (a and b), and the given
+        // origin of the elipse (h and k)
+        //TODO allow the elipse to be rotated, and generate with the planet coordinates at a focus
+        public void generateTrajectory(int a, int b, int h, int k)
         {
-            int numPoints = 100;
+            int numPoints = 500;
             Vector2[] points = new Vector2[numPoints];
 
             float step = MathHelper.TwoPi / numPoints;
             Debug.WriteLine(step);
 
             int i = 0;
-            for (float t = -MathHelper.Pi; t < MathHelper.Pi; t += step)
+            for (float t = -MathHelper.Pi; t <= MathHelper.Pi; t += step)
             {
-                points[i] = new Vector2((int)(h + a * (float)Math.Cos((double)t)), (int)(k + b * (float)Math.Sin((double)t)));
+                if (i <= 499)
+                {
+                    points[i] = new Vector2((int)(h + a * (float)Math.Cos((double)t)), (int)(k + b * (float)Math.Sin((double)t)));
+                }
                 //Debug.WriteLine(points[i]);
                 i++;
             }
