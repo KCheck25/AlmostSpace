@@ -28,7 +28,16 @@ namespace AlmostSpace.Things
         Planet planetOrbiting;
 
         public float height;
-        public float zenith = 0;
+        public float periapsis;
+        public float apoapsis;
+        public float dispVelocity;
+        public float angleToPlanetDeg;
+        public float angleDeg;
+
+        public float zenithDisp = 0;
+
+        bool spaceToggle = true;
+        bool timeStopped = false;
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
@@ -39,7 +48,7 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(30, 0);
+            velocity = new Vector2(60, 0);
             position = new Vector2(900, 200);
             this.planetOrbiting = startingPlanet;
             generateTrajectory(200, 200, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y);
@@ -79,13 +88,40 @@ namespace AlmostSpace.Things
             return new Vector2(xForce, yForce);
         }
 
+
         public void updateOrbit(float angleToPlanet)
         {
             // no work :(
             float velocityAngle = (float)Math.Atan2(velocity.Y, velocity.X);
-            float zenith = MathHelper.Pi - angleToPlanet - velocityAngle;
-            this.zenith = zenith * 180 / MathHelper.Pi;
-            angle = MathHelper.Pi - angleToPlanet;
+            float zenith = (angleToPlanet) - (MathHelper.TwoPi - velocityAngle);
+            //angle = velocityAngle;
+            angleDeg = (MathHelper.TwoPi - angle) * 180 / MathHelper.Pi;
+            angleToPlanetDeg = (angleToPlanet) * 180 / MathHelper.Pi;
+            this.zenithDisp = wrapAngle(zenith) * 180 / MathHelper.Pi + 360;
+            
+            float velocityMagnitude = (float)Math.Sqrt((velocity.X * velocity.X) + (velocity.Y * velocity.Y));
+
+            float c = (2f * 6.67E-11f * planetOrbiting.getMass()) / (height * velocityMagnitude * velocityMagnitude);
+
+            float first = -c / (2 * (1 - c));
+
+            float second = (float)Math.Sqrt(c * c - 4 * (1 - c) * -Math.Pow(Math.Sin(zenith), 2)) / (2 * (1 - c));
+
+            periapsis = (first - second) * height;
+
+            apoapsis = (first + second) * height;
+
+            dispVelocity = velocityMagnitude;
+
+            float semiMajorAxis = (Math.Abs(apoapsis) + Math.Abs(periapsis)) / 2;
+
+            float eccentricity = (2 * semiMajorAxis - 2 * Math.Min(Math.Abs(apoapsis), Math.Abs(periapsis))) / (2 * semiMajorAxis);
+
+            float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - eccentricity * eccentricity);
+            //Debug.WriteLine(eccentricity);
+
+            generateTrajectory(semiMajorAxis, semiMinorAxis, planetOrbiting.getPosition().X, planetOrbiting.getPosition().Y);
+
         }
 
         // Checks for direction and throttle keyboard inputs and updates the
@@ -94,10 +130,26 @@ namespace AlmostSpace.Things
         // calculations are based on real time.
         public void Update(double frameTime)
         {
+            var kState = Keyboard.GetState();
+
+            if (spaceToggle && kState.IsKeyDown(Keys.Space))
+            {
+                timeStopped = !timeStopped;
+                spaceToggle = false;
+            }
+            if (kState.IsKeyUp(Keys.Space))
+            {
+                spaceToggle = true;
+            }
+
+            if (timeStopped)
+            {
+                return;
+            }
+
             Vector2 forces = computeForce();
             float enginePower = 100f;
 
-            var kState = Keyboard.GetState();
             if (kState.IsKeyDown(Keys.Left))
             {
                 angle -= 10 * (float)frameTime;
@@ -120,7 +172,7 @@ namespace AlmostSpace.Things
             position.X += velocity.X * (float)frameTime;
             position.Y += velocity.Y * (float)frameTime;
             // draws trail behind rocket
-            orbit.Add(new OrbitSprite(orbitTexture, position));
+            //orbit.Add(new OrbitSprite(orbitTexture, position));
         }
 
         // Draws the rocket sprite and orbit approximation to the screen
@@ -131,27 +183,26 @@ namespace AlmostSpace.Things
             {
                 pixel.Draw(spriteBatch);
             }
-            spriteBatch.Begin();
             spriteBatch.Draw(texture, position, null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
-            spriteBatch.End();
         }
 
         // Generates a list of OrbitSprite objects arranged in an elipse with
         // the given semi-major and semi-minor axes (a and b), and the given
         // origin of the elipse (h and k)
+        // Adapted from this helpful stack overflow dude's code: https://stackoverflow.com/questions/21511281/draw-an-ellipse-in-xna
         //TODO allow the elipse to be rotated, and generate with the planet coordinates at a focus
-        public void generateTrajectory(int a, int b, int h, int k)
+        public void generateTrajectory(float a, float b, float h, float k)
         {
-            int numPoints = 500;
+            int numPoints = 1000;
             Vector2[] points = new Vector2[numPoints];
 
             float step = MathHelper.TwoPi / numPoints;
-            Debug.WriteLine(step);
+            //Debug.WriteLine(step);
 
             int i = 0;
             for (float t = -MathHelper.Pi; t <= MathHelper.Pi; t += step)
             {
-                if (i <= 499)
+                if (i <= numPoints - 1)
                 {
                     points[i] = new Vector2((int)(h + a * (float)Math.Cos((double)t)), (int)(k + b * (float)Math.Sin((double)t)));
                 }
@@ -164,11 +215,16 @@ namespace AlmostSpace.Things
             for (int j = 0; j < numPoints; j++)
             {
                 orbit.Add(new OrbitSprite(orbitTexture, points[j]));
-                Debug.WriteLine(points[j]);
+                //Debug.WriteLine(points[j]);
             }
 
-            Debug.WriteLine(orbit.Count);
+            //Debug.WriteLine(orbit.Count);
 
+        }
+
+        public float wrapAngle(float angle)
+        {
+            return angle % MathHelper.TwoPi;
         }
 
     }

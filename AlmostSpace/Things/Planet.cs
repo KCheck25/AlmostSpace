@@ -38,9 +38,7 @@ namespace AlmostSpace.Things
         // Draws this planet to the screen using the given SpriteBatch object
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Begin();
             spriteBatch.Draw(texture, position, null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
-            spriteBatch.End();
         }
 
     }
