@@ -48,10 +48,11 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(60, 0);
-            position = new Vector2(900, 200);
+            velocity = new Vector2(44f, 0);
+            position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
             generateTrajectory(200, 200, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y);
+            Debug.WriteLine(computeForce());
         }
 
         // Returns a vector representing the force of gravity acting
@@ -83,9 +84,20 @@ namespace AlmostSpace.Things
             float xForce = -totalForce * (float)Math.Cos(angleToPlanet);
             float yForce = totalForce * (float)Math.Sin(angleToPlanet);
 
-            updateOrbit(angleToPlanet);
+            updateOrbit2();
 
             return new Vector2(xForce, yForce);
+        }
+
+        public void updateOrbit2()
+        {
+            float universalGravity = 6.67E-11f;
+            float mu = universalGravity * planetOrbiting.getMass();
+            float velocityMagnitude = (float)Math.Sqrt((velocity.X * velocity.X) + (velocity.Y * velocity.Y));
+            dispVelocity = velocityMagnitude;
+
+            float majorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / height));
+            apoapsis = majorAxis;
         }
 
 
@@ -166,8 +178,10 @@ namespace AlmostSpace.Things
                 forces.Y += enginePower * (float)Math.Sin(angle);
             }
 
-            velocity.X += forces.X / mass;
-            velocity.Y += forces.Y / mass;
+            velocity.X += forces.X / mass * (float)frameTime;
+            velocity.Y += forces.Y / mass * (float)frameTime;
+
+            Debug.WriteLine(forces.Y / mass);
 
             position.X += velocity.X * (float)frameTime;
             position.Y += velocity.Y * (float)frameTime;

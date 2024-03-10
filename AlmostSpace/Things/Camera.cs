@@ -33,7 +33,7 @@ namespace AlmostSpace.Things
         // Create a new camera centered on the center of the screen with normal zoom
         public Camera()
         {
-            position = new Vector2(1920 / 2, 1080 / 2);
+            position = new Vector2(0, 0);
             zoom = 1f;
         }
 
@@ -60,7 +60,7 @@ namespace AlmostSpace.Things
                 position.X += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
-            Debug.WriteLine(mouseState.ScrollWheelValue);
+            //Debug.WriteLine(mouseState.ScrollWheelValue);
 
             if (mouseState.ScrollWheelValue < prevScrollValue)
             {

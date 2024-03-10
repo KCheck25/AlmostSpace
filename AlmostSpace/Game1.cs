@@ -54,7 +54,7 @@ namespace AlmostSpace
             uiFont = Content.Load<SpriteFont>("OrbitInfo");
             orbitTexture = Content.Load<Texture2D>("OrbitPiece");
 
-            earth = new Planet(earthTexture, 4E14f, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2));
+            earth = new Planet(earthTexture, 4E15f, new Vector2(0, 0));
             rocket = new Rocket(rocketTexture, orbitTexture, 50, earth);
         }
 
