@@ -23,11 +23,9 @@ namespace AlmostSpace.Things
         }
 
         // Draws this OrbitSprite to the screen using the given SpriteBatch object
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
-            //spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, Color.White);
-            //spriteBatch.End();
+            spriteBatch.Draw(texture, Vector2.Transform(position, transform), Color.White);
         }
     }
 }

@@ -177,13 +177,13 @@ namespace AlmostSpace.Things
 
         // Draws the rocket sprite and orbit approximation to the screen
         // using the given SpriteBatch object
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
             foreach (OrbitSprite pixel in orbit)
             {
-                pixel.Draw(spriteBatch);
+                pixel.Draw(spriteBatch, transform);
             }
-            spriteBatch.Draw(texture, position, null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            spriteBatch.Draw(texture, Vector2.Transform(position, transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
         // Generates a list of OrbitSprite objects arranged in an elipse with

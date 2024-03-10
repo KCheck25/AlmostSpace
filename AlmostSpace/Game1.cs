@@ -94,12 +94,14 @@ namespace AlmostSpace
             //_spriteBatch.Draw(ballTexture, ballPosition, null, Color.White, 0f, new Vector2(ballTexture.Width / 2, ballTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
             //_spriteBatch.Draw(earthTexture, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2), null, Color.White, 0f, new Vector2(earthTexture.Width / 2, earthTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
 
-            rocket.Draw(_spriteBatch);
             earth.Draw(_spriteBatch);
 
             _spriteBatch.End();
 
             _spriteBatch.Begin();
+
+            rocket.Draw(_spriteBatch, camera.transform);
+
             _spriteBatch.DrawString(uiFont, "Height: " + rocket.height, new Vector2(50, 50), Color.White);
             _spriteBatch.DrawString(uiFont, "Zenith: " + rocket.zenithDisp, new Vector2(50, 75), Color.White);
             _spriteBatch.DrawString(uiFont, "Periapsis: " + rocket.periapsis, new Vector2(50, 100), Color.White);
