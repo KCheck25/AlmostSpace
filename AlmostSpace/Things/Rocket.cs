@@ -9,6 +9,7 @@ using System.Collections;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 
 namespace AlmostSpace.Things
 {
@@ -127,9 +128,9 @@ namespace AlmostSpace.Things
 
             float radV = (position.X * velocity.X + position.Y * velocity.Y) / height;
             float angle = Math.Sign(tanV * radV) * (float)Math.Acos((majorAxis * (1 - e * e) - height) / (e * height)) - (float)Math.Atan2(position.Y, position.X);
-            Debug.WriteLine(angle);
+            //Debug.WriteLine(angle);
 
-            generateTrajectory(semiMinorAxis, majorAxis, 0, 0, angle + MathHelper.PiOver2);
+            generateTrajectory(semiMinorAxis, majorAxis, 0, 0, MathHelper.PiOver2 - angle);
 
             /*
             Vector2 angularVector = position * velocity;
@@ -213,18 +214,22 @@ namespace AlmostSpace.Things
         public void generateTrajectory(float a, float b, float h, float k, float theta)
         {
             //TODO: Make rotation work lol
-            /*
+            
             float sMajor = Math.Max(a, b);
             float sMinor = Math.Min(a, b);
 
             float cDist = (float)Math.Pow(sMajor * sMajor - sMinor * sMinor, 0.5);
 
-            h -= cDist * (float)Math.Sin(theta);
-            k -= cDist * (float)Math.Cos(theta);
-            */
+            h = -cDist * (float)Math.Sin(theta);
+            k = cDist * (float)Math.Cos(theta);
 
-            float c = (float)Math.Sqrt(b * b - a * a);
-            k -= c;
+            //h = 500;
+            
+
+            Matrix rotation = Matrix.CreateRotationZ(theta);
+
+            //float c = (float)Math.Sqrt(b * b - a * a);
+            //k -= c;
 
             int numPoints = 1000;
             Vector2[] points = new Vector2[numPoints];
@@ -237,10 +242,16 @@ namespace AlmostSpace.Things
             {
                 if (i <= numPoints - 1)
                 {
-                    points[i] = new Vector2((int)(h + a * (float)Math.Cos((double)t)), (int)(k + b * (float)Math.Sin((double)t)));
+                    points[i] = Vector2.Transform(new Vector2((int)(a * (float)Math.Cos((double)t)), (int)(b * (float)Math.Sin((double)t))), rotation);
                 }
                 //Debug.WriteLine(points[i]);
                 i++;
+            }
+
+            for (int j = 0; j < points.Length; j++)
+            {
+                points[j].X += h;
+                points[j].Y += k;
             }
 
 
