@@ -14,6 +14,7 @@ namespace AlmostSpace.Things
         Texture2D texture;
         float mass;
         Vector2 position;
+        float radius;
 
         // Creates a new planet using the given texture, mass, and position
         public Planet(Texture2D texture, float mass, Vector2 position)
@@ -21,6 +22,7 @@ namespace AlmostSpace.Things
             this.texture = texture;
             this.mass = mass;
             this.position = position;
+            this.radius = texture.Width / 2;
         }
 
         // Returns the mass of this planet
@@ -33,6 +35,12 @@ namespace AlmostSpace.Things
         public Vector2 getPosition()
         {
             return position;
+        }
+
+        // Returns the radius of the planet's surface
+        public float getRadius()
+        {
+            return radius;
         }
 
         // Draws this planet to the screen using the given SpriteBatch object

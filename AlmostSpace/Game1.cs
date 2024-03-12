@@ -89,33 +89,24 @@ namespace AlmostSpace
         {
             GraphicsDevice.Clear(Color.Black);
 
-            // TODO: Add your drawing code here
+            // Draw earth
             _spriteBatch.Begin(transformMatrix: camera.transform);
-            //_spriteBatch.Draw(ballTexture, ballPosition, null, Color.White, 0f, new Vector2(ballTexture.Width / 2, ballTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
-            //_spriteBatch.Draw(earthTexture, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2), null, Color.White, 0f, new Vector2(earthTexture.Width / 2, earthTexture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
-
             earth.Draw(_spriteBatch);
-
             _spriteBatch.End();
 
+
+            // Draw rocket, orbit information, and orbit
             _spriteBatch.Begin();
-
             rocket.Draw(_spriteBatch, camera.transform);
-
-            _spriteBatch.DrawString(uiFont, "Height: " + rocket.height, new Vector2(50, 50), Color.White);
-            _spriteBatch.DrawString(uiFont, "Zenith: " + rocket.zenithDisp, new Vector2(50, 75), Color.White);
-            _spriteBatch.DrawString(uiFont, "Periapsis: " + rocket.periapsis, new Vector2(50, 100), Color.White);
-            _spriteBatch.DrawString(uiFont, "Apoapsis: " + rocket.apoapsis, new Vector2(50, 125), Color.White);
-            _spriteBatch.DrawString(uiFont, "Velocity: " + rocket.dispVelocity, new Vector2(50, 150), Color.White);
-            _spriteBatch.DrawString(uiFont, "Planet Angle: " + rocket.angleToPlanetDeg, new Vector2(50, 175), Color.White);
-            _spriteBatch.DrawString(uiFont, "Angle: " + rocket.angleDeg, new Vector2(50, 200), Color.White);
-            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(50, 225), Color.White);
-            _spriteBatch.DrawString(uiFont, "Period: " + rocket.period, new Vector2(50, 250), Color.White);
-            _spriteBatch.DrawString(uiFont, "Semi-Major Axis: " + rocket.apoapsis, new Vector2(50, 275), Color.White);
-
+            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight()) + "m", new Vector2(25, 25), Color.White);
+            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocity()) + "m/s", new Vector2(25, 60), Color.White);
+            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight()) + "m", new Vector2(25, 95), Color.White);
+            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()) + "m", new Vector2(25, 130), Color.White);
+            _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
+            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 200), Color.White);
             _spriteBatch.End();
 
-
+            
 
             base.Draw(gameTime);
         }
