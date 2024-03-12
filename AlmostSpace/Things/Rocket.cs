@@ -18,6 +18,9 @@ namespace AlmostSpace.Things
         // Fields for tracking the rocket's current state
         Vector2 velocity;
         Vector2 position;
+
+        public Vector2 forceGravity;
+
         float angle;
         float mass;
 
@@ -33,6 +36,7 @@ namespace AlmostSpace.Things
         public float dispVelocity;
         public float angleToPlanetDeg;
         public float angleDeg;
+        public float period;
 
         public float zenithDisp = 0;
 
@@ -48,16 +52,15 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(44f, 0);
+            velocity = new Vector2(40f, 0);
             position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
-            generateTrajectory(200, 200, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y);
-            Debug.WriteLine(computeForce());
+            generateTrajectory(200, 200, (int)startingPlanet.getPosition().X, (int)startingPlanet.getPosition().Y, 0);
         }
 
         // Returns a vector representing the force of gravity acting
         // on the rocket in the x and y directions
-        Vector2 computeForce()
+        void computeGravity()
         {
             Vector2 planetPosition = planetOrbiting.getPosition();
             float massPlanet = planetOrbiting.getMass();
@@ -69,7 +72,9 @@ namespace AlmostSpace.Things
 
             if (distToCenter < 10)
             {
-                return new Vector2(0, 0);
+                forceGravity.X = 0;
+                forceGravity.Y = 0;
+                return;
             }
 
             float universalGravity = 6.67E-11f;
@@ -86,53 +91,54 @@ namespace AlmostSpace.Things
 
             updateOrbit2();
 
-            return new Vector2(xForce, yForce);
+            forceGravity.X = xForce;
+            forceGravity.Y = yForce;
         }
 
         public void updateOrbit2()
         {
+            // This stuff works!!!
+            // Using vis-viva equation but solving for a: https://en.wikipedia.org/wiki/Vis-viva_equation
             float universalGravity = 6.67E-11f;
             float mu = universalGravity * planetOrbiting.getMass();
             float velocityMagnitude = (float)Math.Sqrt((velocity.X * velocity.X) + (velocity.Y * velocity.Y));
             dispVelocity = velocityMagnitude;
 
             float majorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / height));
-            apoapsis = majorAxis;
-        }
+            //apoapsis = majorAxis;
+            period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(majorAxis, 3) / mu));
 
+            // This stuff still is a bit sad :(
 
-        public void updateOrbit(float angleToPlanet)
-        {
-            // no work :(
-            float velocityAngle = (float)Math.Atan2(velocity.Y, velocity.X);
-            float zenith = (angleToPlanet) - (MathHelper.TwoPi - velocityAngle);
-            //angle = velocityAngle;
-            angleDeg = (MathHelper.TwoPi - angle) * 180 / MathHelper.Pi;
-            angleToPlanetDeg = (angleToPlanet) * 180 / MathHelper.Pi;
-            this.zenithDisp = wrapAngle(zenith) * 180 / MathHelper.Pi + 360;
-            
-            float velocityMagnitude = (float)Math.Sqrt((velocity.X * velocity.X) + (velocity.Y * velocity.Y));
+            // Position -> vector from planet to satellite
+            // Velocity -> derivative of position
 
-            float c = (2f * 6.67E-11f * planetOrbiting.getMass()) / (height * velocityMagnitude * velocityMagnitude);
+            // Math taken from: https://physics.stackexchange.com/questions/99094/using-2d-position-velocity-and-mass-to-determine-the-parametric-position-equat
+            // Might be kind of cheating because its basically my project? Ill ask.
+            float tanV = (position.X * velocity.Y - position.Y * velocity.X) / height;
 
-            float first = -c / (2 * (1 - c));
+            float e = (float)Math.Pow(1 + (height * tanV * tanV / mu) * (height * velocityMagnitude * velocityMagnitude / mu - 2), 0.5);
+            //Debug.WriteLine(e);
 
-            float second = (float)Math.Sqrt(c * c - 4 * (1 - c) * -Math.Pow(Math.Sin(zenith), 2)) / (2 * (1 - c));
+            apoapsis = majorAxis * (1 - e);
+            periapsis = majorAxis * (1 + e);
 
-            periapsis = (first - second) * height;
+            float semiMinorAxis = majorAxis * (float)Math.Sqrt(1 - e * e);
 
-            apoapsis = (first + second) * height;
+            float radV = (position.X * velocity.X + position.Y * velocity.Y) / height;
+            float angle = Math.Sign(tanV * radV) * (float)Math.Acos((majorAxis * (1 - e * e) - height) / (e * height)) - (float)Math.Atan2(position.Y, position.X);
+            Debug.WriteLine(angle);
 
-            dispVelocity = velocityMagnitude;
+            generateTrajectory(semiMinorAxis, majorAxis, 0, 0, angle + MathHelper.PiOver2);
 
-            float semiMajorAxis = (Math.Abs(apoapsis) + Math.Abs(periapsis)) / 2;
-
-            float eccentricity = (2 * semiMajorAxis - 2 * Math.Min(Math.Abs(apoapsis), Math.Abs(periapsis))) / (2 * semiMajorAxis);
-
-            float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - eccentricity * eccentricity);
-            //Debug.WriteLine(eccentricity);
-
-            generateTrajectory(semiMajorAxis, semiMinorAxis, planetOrbiting.getPosition().X, planetOrbiting.getPosition().Y);
+            /*
+            Vector2 angularVector = position * velocity;
+            Vector2 eccentricityVector = ((velocity * angularVector) / mu) - (position / getVectorMagnitude(position));
+            Debug.WriteLine(eccentricityVector);
+            float eccentricityMagnitude = getVectorMagnitude(eccentricityVector);
+            //apoapsis = eccentricityMagnitude;
+            apoapsis = majorAxis * (1 - eccentricityMagnitude);
+            */
 
         }
 
@@ -159,8 +165,9 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            Vector2 forces = computeForce();
-            float enginePower = 100f;
+            computeGravity();
+
+            float enginePower = 500f;
 
             if (kState.IsKeyDown(Keys.Left))
             {
@@ -174,14 +181,12 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.Up))
             {
-                forces.X += enginePower * (float)Math.Cos(angle);
-                forces.Y += enginePower * (float)Math.Sin(angle);
+                forceGravity.X += enginePower * (float)Math.Cos(angle);
+                forceGravity.Y += enginePower * (float)Math.Sin(angle);
             }
 
-            velocity.X += forces.X / mass * (float)frameTime;
-            velocity.Y += forces.Y / mass * (float)frameTime;
-
-            Debug.WriteLine(forces.Y / mass);
+            velocity.X += forceGravity.X / mass * (float)frameTime;
+            velocity.Y += forceGravity.Y / mass * (float)frameTime;
 
             position.X += velocity.X * (float)frameTime;
             position.Y += velocity.Y * (float)frameTime;
@@ -205,8 +210,22 @@ namespace AlmostSpace.Things
         // origin of the elipse (h and k)
         // Adapted from this helpful stack overflow dude's code: https://stackoverflow.com/questions/21511281/draw-an-ellipse-in-xna
         //TODO allow the elipse to be rotated, and generate with the planet coordinates at a focus
-        public void generateTrajectory(float a, float b, float h, float k)
+        public void generateTrajectory(float a, float b, float h, float k, float theta)
         {
+            //TODO: Make rotation work lol
+            /*
+            float sMajor = Math.Max(a, b);
+            float sMinor = Math.Min(a, b);
+
+            float cDist = (float)Math.Pow(sMajor * sMajor - sMinor * sMinor, 0.5);
+
+            h -= cDist * (float)Math.Sin(theta);
+            k -= cDist * (float)Math.Cos(theta);
+            */
+
+            float c = (float)Math.Sqrt(b * b - a * a);
+            k -= c;
+
             int numPoints = 1000;
             Vector2[] points = new Vector2[numPoints];
 
@@ -239,6 +258,11 @@ namespace AlmostSpace.Things
         public float wrapAngle(float angle)
         {
             return angle % MathHelper.TwoPi;
+        }
+
+        float getVectorMagnitude(Vector2 v)
+        {
+            return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y); 
         }
 
     }

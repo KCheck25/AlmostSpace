@@ -110,6 +110,9 @@ namespace AlmostSpace
             _spriteBatch.DrawString(uiFont, "Planet Angle: " + rocket.angleToPlanetDeg, new Vector2(50, 175), Color.White);
             _spriteBatch.DrawString(uiFont, "Angle: " + rocket.angleDeg, new Vector2(50, 200), Color.White);
             _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(50, 225), Color.White);
+            _spriteBatch.DrawString(uiFont, "Period: " + rocket.period, new Vector2(50, 250), Color.White);
+            _spriteBatch.DrawString(uiFont, "Semi-Major Axis: " + rocket.apoapsis, new Vector2(50, 275), Color.White);
+
             _spriteBatch.End();
 
 
