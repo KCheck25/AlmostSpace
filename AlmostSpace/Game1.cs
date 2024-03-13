@@ -63,28 +63,13 @@ namespace AlmostSpace
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
-
-            // Example keyboard stuff:
-            /*
-            var kState = Keyboard.GetState();
-
-            if (kState.IsKeyDown(Keys.Up))
-            {
-                ballPosition.Y -= ballSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            }
-            */
-
-            //ballPosition.X = 0;
-            //ballPosition.Y = 0;
-
             rocket.Update(gameTime.ElapsedGameTime.TotalSeconds);
-
             camera.update(gameTime);
 
             base.Update(gameTime);
         }
 
+        // Draw things to the screen
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);

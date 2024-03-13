@@ -175,12 +175,12 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.Left))
             {
-                angle -= 10 * (float)frameTime;
+                angle -= 3 * (float)frameTime;
             }
 
             if (kState.IsKeyDown(Keys.Right))
             {
-                angle += 10 * (float)frameTime;
+                angle += 3 * (float)frameTime;
             }
 
             if (kState.IsKeyDown(Keys.Up))
