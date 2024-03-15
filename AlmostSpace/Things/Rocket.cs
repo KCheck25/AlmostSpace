@@ -20,6 +20,9 @@ namespace AlmostSpace.Things
         Vector2 velocity;
         Vector2 position;
 
+        // Eccentricity vector
+        Vector2 eV;
+
         Vector2 forceGravity;
 
         float angle;
@@ -50,7 +53,7 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(40f, 0);
+            velocity = new Vector2(40f, 10f);
             position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
         }
@@ -129,21 +132,51 @@ namespace AlmostSpace.Things
             float semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
             period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
 
-            // Math taken from: https://physics.stackexchange.com/questions/99094/using-2d-position-velocity-and-mass-to-determine-the-parametric-position-equat
-            // Might be kind of cheating because its basically my project? Ill ask.
-            float tanV = (position.X * velocity.Y - position.Y * velocity.X) / radius;
+            // More equations https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
 
-            float e = (float)Math.Pow(1 + (radius * tanV * tanV / mu) * (radius * velocityMagnitude * velocityMagnitude / mu - 2), 0.5);
+            float h = position.X * velocity.Y - position.Y * velocity.X;
+
+
+            float eX = (velocity.Y * h) / mu - position.X / radius;
+            float eY = (-velocity.X * h) / mu - position.Y / radius;
+            eV = new Vector2(eX, eY);
+
+
+            float e = getMagnitude(eV);
+            float argP = (float)Math.Atan2(eV.Y, eV.X) - MathHelper.PiOver2;
 
             rApoapsis = semiMajorAxis * (1 + e);
             rPeriapsis = semiMajorAxis * (1 - e);
 
             float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
 
+
+            float m0 = argP - e * (float)Math.Sin(argP);
+            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 25 + m0;
+            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
+            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
+            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly + argP));
+
+            Debug.WriteLine(degrees(argP) + " " + (distAtAnomaly - 150));
+            
+
+            generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, argP + MathHelper.Pi);
+
+        }
+
+        public void oldEquations()
+        {
+            // Math taken from: https://physics.stackexchange.com/questions/99094/using-2d-position-velocity-and-mass-to-determine-the-parametric-position-equat
+            // Might be kind of cheating because its basically my project? Ill ask.
+            float semiMajorAxis = 0;
+            float mu = 0;
+            float velocityMagnitude = 0;
+
+            float tanV = (position.X * velocity.Y - position.Y * velocity.X) / radius;
+            float e = (float)Math.Pow(1 + (radius * tanV * tanV / mu) * (radius * velocityMagnitude * velocityMagnitude / mu - 2), 0.5);
             float radV = (position.X * velocity.X + position.Y * velocity.Y) / radius;
             float angle = Math.Sign(tanV * radV) * (float)Math.Acos((semiMajorAxis * (1 - e * e) - radius) / (e * radius)) - (float)Math.Atan2(position.Y, position.X);
 
-            generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, MathHelper.PiOver2 - angle);
         }
 
         // Checks for direction and throttle keyboard inputs and updates the
@@ -262,6 +295,36 @@ namespace AlmostSpace.Things
         float getMagnitude(Vector2 v)
         {
             return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y); 
+        }
+
+        static double getEccentricAnomaly(double x, double eccentricity, double mAnomaly)
+        {
+
+            double h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
+            while (Math.Abs(h) >= 0.001)
+            {
+                h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
+
+                // x(i+1) = x(i) - f(x) / f'(x) 
+                x = x - h;
+            }
+
+            return Math.Round(x * 100) / 100;
+        }
+
+        static double func(double x, double eccentricity, double meanAnomaly)
+        {
+            return x - eccentricity * Math.Sin(x) - meanAnomaly;
+        }
+
+        static double derivFunc(double x, double eccentricity)
+        {
+            return 1 - eccentricity * Math.Cos(x);
+        }
+
+        static float degrees(float angle)
+        {
+            return angle * 180 / MathHelper.Pi;
         }
 
     }
