@@ -53,7 +53,7 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(40f, 10f);
+            velocity = new Vector2(40f, -10f);
             position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
         }
@@ -113,14 +113,14 @@ namespace AlmostSpace.Things
             float xForce = -totalForce * (float)Math.Cos(angleToPlanet);
             float yForce = totalForce * (float)Math.Sin(angleToPlanet);
 
-            updateOrbit();
+            updateOrbit(angleToPlanet);
 
             forceGravity.X = xForce;
             forceGravity.Y = yForce;
         }
 
         // Recalculates the rocket's orbital parameters from its velocity and position vectors
-        public void updateOrbit()
+        public void updateOrbit(float planetAngle)
         {
             // This stuff works!!!
             // Using vis-viva equation but solving for a: https://en.wikipedia.org/wiki/Vis-viva_equation
@@ -143,7 +143,7 @@ namespace AlmostSpace.Things
 
 
             float e = getMagnitude(eV);
-            float argP = (float)Math.Atan2(eV.Y, eV.X) - MathHelper.PiOver2;
+            float argP = -(float)Math.Atan2(eV.Y, eV.X);
 
             rApoapsis = semiMajorAxis * (1 + e);
             rPeriapsis = semiMajorAxis * (1 - e);
@@ -151,16 +151,26 @@ namespace AlmostSpace.Things
             float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
 
 
-            float m0 = argP - e * (float)Math.Sin(argP);
-            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 25 + m0;
+            //float m0 = argP - e * (float)Math.Sin(argP);
+            float currentTrueAnomaly = planetAngle - argP;
+            //float currentEAnomaly = (float)Math.Asin(Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+            //float m0 = currentEAnomaly - e * (float)Math.Sin(currentEAnomaly);
+
+            float m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+
+            // mean anomaly at a time since periapsis
+            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 10 + m0;
+
             float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
             float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
-            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly + argP));
+            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // if argP is omitted, this becomes distance at a given time since periapsis
 
-            Debug.WriteLine(degrees(argP) + " " + (distAtAnomaly - 150));
+
+            Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
+            //Debug.WriteLine("argP: " + degrees(tAnomaly) + " ta: " + degrees(currentTrueAnomaly));
             
 
-            generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, argP + MathHelper.Pi);
+            generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
 
         }
 

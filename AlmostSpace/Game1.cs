@@ -90,6 +90,7 @@ namespace AlmostSpace
             _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
             _spriteBatch.DrawString(uiFont, "Game Time: " + gameTime.TotalGameTime.TotalSeconds, new Vector2(25, 200), Color.White);
             _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 235), Color.White);
+
             _spriteBatch.End();
 
             
