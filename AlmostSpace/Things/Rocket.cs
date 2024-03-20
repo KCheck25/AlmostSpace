@@ -174,21 +174,21 @@ namespace AlmostSpace.Things
             rPeriapsis = semiMajorAxis * (1 - e);
 
             semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
-
+            
             /*
-
             float currentTrueAnomaly = planetAngle - argP;
 
-            float m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+            float m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly))
+                + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
 
             // mean anomaly at a time since periapsis
             float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 5 + m0;
 
             float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
             float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
-            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // if argP is omitted, this becomes distance at a given time since periapsis
+            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly));
 
-            //Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
+            Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
             //Debug.WriteLine("argP: " + degrees(tAnomaly) + " ta: " + degrees(currentTrueAnomaly));
             */
             generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
@@ -208,6 +208,7 @@ namespace AlmostSpace.Things
             float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed + m0;
 
             float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
+
             if (eAnomaly == -1)
             {
                 Debug.WriteLine("Error: Could Not Find Root!");
@@ -419,6 +420,9 @@ namespace AlmostSpace.Things
             return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y); 
         }
 
+        // Code adapted from https://www.geeksforgeeks.org/program-for-newton-raphson-method/
+        // Computes the eccentric anomaly using the newton-raphson root finding algorithm
+        // Takes a guess (x), the eccentricity of the orbit, and the mean anomaly
         static double getEccentricAnomaly(double x, double eccentricity, double mAnomaly)
         {
 
@@ -441,11 +445,13 @@ namespace AlmostSpace.Things
             return Math.Round(x * 1000) / 1000;
         }
 
+        // Mean and eccentric anomaly function
         static double func(double x, double eccentricity, double meanAnomaly)
         {
             return x - eccentricity * Math.Sin(x) - meanAnomaly;
         }
 
+        // First derivative of mean and eccentric anomaly function
         static double derivFunc(double x, double eccentricity)
         {
             return 1 - eccentricity * Math.Cos(x);
