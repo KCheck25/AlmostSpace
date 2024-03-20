@@ -17,13 +17,16 @@ namespace AlmostSpace.Things
     internal class Rocket
     {
         // Fields for tracking the rocket's current state
+        // Always updated
         Vector2 velocity;
         Vector2 position;
 
         // Eccentricity vector
         Vector2 eV;
 
+        // Only updated when physics
         Vector2 forceGravity;
+        float planetAngle;
 
         float angle;
         float mass;
@@ -34,15 +37,38 @@ namespace AlmostSpace.Things
 
         Planet planetOrbiting;
 
-        float radius;
-
+        // Always updated
         float rPeriapsis;
         float rApoapsis;
         float vMagnitude;
         float period;
+        float argP;
+        float radius;
+        float semiMajorAxis;
+        float semiMinorAxis;
+        float e;
+        float mu;
 
+        float timeStoppedPhysics;
+
+        float universalGravity = 6.67E-11f;
+
+        // only updated when switching from physics to no physics
+        float m0;
+
+        bool physicsJustStopped = true;
         bool spaceToggle = true;
         bool timeStopped = false;
+
+        bool periodPressed = false;
+        bool commaPressed = false;
+
+        public float totalTimeElapsed;
+
+        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000 };
+        int timeWarpLevel = 0;
+
+        public float timeFactor;
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
@@ -53,9 +79,10 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(40f, -10f);
+            velocity = new Vector2(40f, 0f);
             position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
+            timeFactor = timeWarpLevels[timeWarpLevel];
         }
 
         // Returns the rockets height above the planets surface in meters
@@ -90,7 +117,7 @@ namespace AlmostSpace.Things
 
         // Returns a vector representing the force of gravity acting
         // on the rocket in the x and y directions
-        void computeGravity()
+        void updatePhysics()
         {
             Vector2 planetPosition = planetOrbiting.getPosition();
             float massPlanet = planetOrbiting.getMass();
@@ -106,30 +133,28 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            float universalGravity = 6.67E-11f;
             float totalForce = (universalGravity * massPlanet * mass) / (distToCenter * distToCenter);
-            float angleToPlanet = (float)Math.Atan2(yDist, xDist);
+            planetAngle = (float)Math.Atan2(yDist, xDist);
 
-            float xForce = -totalForce * (float)Math.Cos(angleToPlanet);
-            float yForce = totalForce * (float)Math.Sin(angleToPlanet);
-
-            updateOrbit(angleToPlanet);
+            float xForce = -totalForce * (float)Math.Cos(planetAngle);
+            float yForce = totalForce * (float)Math.Sin(planetAngle);
 
             forceGravity.X = xForce;
             forceGravity.Y = yForce;
+
+            updateOrbit();
         }
 
         // Recalculates the rocket's orbital parameters from its velocity and position vectors
-        public void updateOrbit(float planetAngle)
+        public void updateOrbit()
         {
             // This stuff works!!!
             // Using vis-viva equation but solving for a: https://en.wikipedia.org/wiki/Vis-viva_equation
-            float universalGravity = 6.67E-11f;
-            float mu = universalGravity * planetOrbiting.getMass();
+            mu = universalGravity * planetOrbiting.getMass();
             float velocityMagnitude = getMagnitude(velocity);
             vMagnitude = velocityMagnitude;
 
-            float semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
+            semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
             period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
 
             // More equations https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
@@ -142,36 +167,72 @@ namespace AlmostSpace.Things
             eV = new Vector2(eX, eY);
 
 
-            float e = getMagnitude(eV);
-            float argP = -(float)Math.Atan2(eV.Y, eV.X);
+            e = getMagnitude(eV);
+            argP = -(float)Math.Atan2(eV.Y, eV.X);
 
             rApoapsis = semiMajorAxis * (1 + e);
             rPeriapsis = semiMajorAxis * (1 - e);
 
-            float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
+            semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
 
+            /*
 
-            //float m0 = argP - e * (float)Math.Sin(argP);
             float currentTrueAnomaly = planetAngle - argP;
-            //float currentEAnomaly = (float)Math.Asin(Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
-            //float m0 = currentEAnomaly - e * (float)Math.Sin(currentEAnomaly);
 
             float m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
 
             // mean anomaly at a time since periapsis
-            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 10 + m0;
+            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 5 + m0;
 
             float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
             float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
             float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // if argP is omitted, this becomes distance at a given time since periapsis
 
-
-            Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
+            //Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
             //Debug.WriteLine("argP: " + degrees(tAnomaly) + " ta: " + degrees(currentTrueAnomaly));
-            
-
+            */
             generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
+        }
 
+        public void transitionToNoPhysics()
+        {
+            timeStoppedPhysics = totalTimeElapsed;
+            float currentTrueAnomaly = planetAngle - argP;
+            m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+        }
+
+        public void updateNoPhysics(GameTime gameTime)
+        {
+            float timePassed = totalTimeElapsed - timeStoppedPhysics;
+
+            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed + m0;
+
+            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
+            if (eAnomaly == -1)
+            {
+                Debug.WriteLine("Error: Could Not Find Root!");
+                return;
+            }
+
+            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
+
+            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // if argP is omitted, this becomes distance at a given time since periapsis
+
+            radius = distAtAnomaly;
+
+            vMagnitude = (float)Math.Sqrt(mu * (2 / distAtAnomaly - 1 / semiMajorAxis));
+
+            // https://physics.stackexchange.com/questions/669946/how-to-calculate-the-direction-of-the-velocity-vector-for-a-body-that-moving-is
+            float vY = -(float)Math.Sin(tAnomaly) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude;
+            float vX = (float)(e + Math.Cos(tAnomaly)) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude;
+
+
+            // https://matthew-brett.github.io/teaching/rotation_2d.html
+            velocity.X = (float)(Math.Cos(-argP - MathHelper.PiOver2) * vX - Math.Sin(-argP - MathHelper.PiOver2) * vY);
+            velocity.Y = (float)(Math.Sin(-argP - MathHelper.PiOver2) * vX + Math.Cos(-argP - MathHelper.PiOver2) * vY);
+
+            position.X = distAtAnomaly * (float)Math.Cos(tAnomaly + argP);
+            position.Y = -distAtAnomaly * (float)Math.Sin(tAnomaly + argP);
         }
 
         public void oldEquations()
@@ -193,7 +254,7 @@ namespace AlmostSpace.Things
         // velocity and position of the rocket based on the forces acting on it.
         // Takes the time since the last frame as a parameter to make sure
         // calculations are based on real time.
-        public void Update(double frameTime)
+        public void Update(GameTime gameTime)
         {
             var kState = Keyboard.GetState();
 
@@ -212,31 +273,82 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            computeGravity();
 
             float enginePower = 500f;
 
             if (kState.IsKeyDown(Keys.Left))
             {
-                angle -= 3 * (float)frameTime;
+                angle -= 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
             if (kState.IsKeyDown(Keys.Right))
             {
-                angle += 3 * (float)frameTime;
+                angle += 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
             if (kState.IsKeyDown(Keys.Up))
             {
+                totalTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                updatePhysics();
+
                 forceGravity.X += enginePower * (float)Math.Cos(angle);
                 forceGravity.Y += enginePower * (float)Math.Sin(angle);
+                physicsJustStopped = true;
+
+
+                velocity.X += forceGravity.X / mass * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                velocity.Y += forceGravity.Y / mass * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                position.X += velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.Y += velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            }
+            else
+            {
+                totalTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
+
+                if (physicsJustStopped)
+                {
+                    updatePhysics();
+                    transitionToNoPhysics();
+                    physicsJustStopped = false;
+                }
+
+                updateNoPhysics(gameTime);
+
             }
 
-            velocity.X += forceGravity.X / mass * (float)frameTime;
-            velocity.Y += forceGravity.Y / mass * (float)frameTime;
+            if (kState.IsKeyDown(Keys.OemPeriod) && !periodPressed)
+            {
+                if (timeWarpLevel < timeWarpLevels.Length - 1)
+                {
+                    timeWarpLevel++;
+                }
+                periodPressed = true;
+            }
 
-            position.X += velocity.X * (float)frameTime;
-            position.Y += velocity.Y * (float)frameTime;
+            if (kState.IsKeyDown(Keys.OemComma) && !commaPressed)
+            {
+                if (timeWarpLevel > 0)
+                {
+                    timeWarpLevel--;
+                }
+                commaPressed = true;
+            }
+
+            if (kState.IsKeyUp(Keys.OemPeriod))
+            {
+                periodPressed = false;
+            }
+
+            if (kState.IsKeyUp(Keys.OemComma))
+            {
+                commaPressed = false;
+            }
+
+            timeFactor = timeWarpLevels[timeWarpLevel];
+
         }
 
         // Draws the rocket sprite and orbit approximation to the screen
@@ -311,15 +423,22 @@ namespace AlmostSpace.Things
         {
 
             double h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
-            while (Math.Abs(h) >= 0.001)
+            int i = 0;
+            while (Math.Abs(h) >= 0.0001)
             {
                 h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
 
                 // x(i+1) = x(i) - f(x) / f'(x) 
                 x = x - h;
+
+                i++;
+                if (i > 100000)
+                {
+                    return -1;
+                }
             }
 
-            return Math.Round(x * 100) / 100;
+            return Math.Round(x * 1000) / 1000;
         }
 
         static double func(double x, double eccentricity, double meanAnomaly)
