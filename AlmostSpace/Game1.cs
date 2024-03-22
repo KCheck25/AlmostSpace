@@ -81,6 +81,12 @@ namespace AlmostSpace
 
 
             // Draw rocket, orbit information, and orbit
+            String time = rocket.getDisplayTime();
+            float timeWidth = uiFont.MeasureString(time).X;
+
+            String timeWarp = "Time warp: " + rocket.timeFactor + "x";
+            float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
+
             _spriteBatch.Begin();
             rocket.Draw(_spriteBatch, camera.transform);
             _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight()) + "m", new Vector2(25, 25), Color.White);
@@ -88,13 +94,13 @@ namespace AlmostSpace
             _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight()) + "m", new Vector2(25, 95), Color.White);
             _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()) + "m", new Vector2(25, 130), Color.White);
             _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
-            _spriteBatch.DrawString(uiFont, "Game Time: " + Math.Round(rocket.totalTimeElapsed) + "s", new Vector2(25, 200), Color.White);
-            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 235), Color.White);
-            _spriteBatch.DrawString(uiFont, "Time warp: " + rocket.timeFactor + "x", new Vector2(25, 270), Color.White);
+            _spriteBatch.DrawString(uiFont, "Throttle: " + rocket.getThrottle() + "%", new Vector2(25, 270), Color.White);
+            _spriteBatch.DrawString(uiFont, time, new Vector2(1895 - timeWidth, 25), Color.White);
+            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 345), Color.White);
+            _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(1895 - timeWarpWidth, 60), Color.White);
+            _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 235), Color.White);
 
             _spriteBatch.End();
-
-            
 
             base.Draw(gameTime);
         }

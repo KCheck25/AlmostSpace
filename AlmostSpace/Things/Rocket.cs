@@ -49,7 +49,7 @@ namespace AlmostSpace.Things
         float e;
         float mu;
 
-        float timeStoppedPhysics;
+        double timeSinceStoppedPhysics;
 
         float universalGravity = 6.67E-11f;
 
@@ -58,17 +58,22 @@ namespace AlmostSpace.Things
 
         bool physicsJustStopped = true;
         bool spaceToggle = true;
+        bool pToggle = true;
         bool timeStopped = false;
+        bool engineOn = false;
 
         bool periodPressed = false;
         bool commaPressed = false;
 
-        public float totalTimeElapsed;
+        public double totalTimeElapsed;
 
-        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000 };
+        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000, 10000, 100000 };
         int timeWarpLevel = 0;
 
         public float timeFactor;
+
+        float engineThrust = 500f;
+        float throttle = 1;
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
@@ -115,6 +120,18 @@ namespace AlmostSpace.Things
             return period;
         }
 
+        // Returns the rocket's current throttle as a percentage
+        public float getThrottle()
+        {
+            return (float)Math.Round(throttle * 100);
+        }
+
+        // Returns a string of whether the engine is on or off
+        public String getEngineState()
+        {
+            return engineOn ? "On" : "Off";
+        }
+
         // Returns a vector representing the force of gravity acting
         // on the rocket in the x and y directions
         void updatePhysics()
@@ -148,76 +165,67 @@ namespace AlmostSpace.Things
         // Recalculates the rocket's orbital parameters from its velocity and position vectors
         public void updateOrbit()
         {
-            // This stuff works!!!
-            // Using vis-viva equation but solving for a: https://en.wikipedia.org/wiki/Vis-viva_equation
+            // mu is the standard gravitational parameter of the planet that's being orbited
             mu = universalGravity * planetOrbiting.getMass();
             float velocityMagnitude = getMagnitude(velocity);
             vMagnitude = velocityMagnitude;
 
+            // Using vis-viva equation but solving for the semi major axis (a): https://en.wikipedia.org/wiki/Vis-viva_equation
             semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
             period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
 
-            // More equations https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
+            
+            // Equations taken from here: https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
+            float h = position.X * velocity.Y - position.Y * velocity.X; // angular momentum
 
-            float h = position.X * velocity.Y - position.Y * velocity.X;
-
-
+            // eccentricity vector
             float eX = (velocity.Y * h) / mu - position.X / radius;
             float eY = (-velocity.X * h) / mu - position.Y / radius;
             eV = new Vector2(eX, eY);
-
-
             e = getMagnitude(eV);
+
+            // argument of periapsis - angle from planet to periapsis
             argP = -(float)Math.Atan2(eV.Y, eV.X);
 
+            // Apoapsis and periapsis radiuses
             rApoapsis = semiMajorAxis * (1 + e);
             rPeriapsis = semiMajorAxis * (1 - e);
 
             semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
             
-            /*
-            float currentTrueAnomaly = planetAngle - argP;
-
-            float m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly))
-                + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
-
-            // mean anomaly at a time since periapsis
-            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * 5 + m0;
-
-            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
-            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
-            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly));
-
-            Debug.WriteLine("Height in 5 seconds: " + (distAtAnomaly - 150));
-            //Debug.WriteLine("argP: " + degrees(tAnomaly) + " ta: " + degrees(currentTrueAnomaly));
-            */
+            // Draw orbit to screen
             generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
         }
 
+        // This method runs when switching between physics mode and non physics mode
+        // It's main purpose is to compute the rocket's mean anomaly at the time of making this switch
         public void transitionToNoPhysics()
         {
-            timeStoppedPhysics = totalTimeElapsed;
+            timeSinceStoppedPhysics = 0;
             float currentTrueAnomaly = planetAngle - argP;
             m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
         }
 
-        public void updateNoPhysics(GameTime gameTime)
+        // Recalculates the rocket's position in space and velocity based on its current orbital parameters
+        // Allows time to be sped up without losing precision
+        public void updateNoPhysics()
         {
-            float timePassed = totalTimeElapsed - timeStoppedPhysics;
+            float timePassed = (float)timeSinceStoppedPhysics;
 
-            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed + m0;
+            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed + m0; // mean anomaly
 
-            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly);
+            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly); // eccentric anomaly
 
+            // don't update vectors if eccentric anomaly calculation gets stuck for some reason
             if (eAnomaly == -1)
             {
                 Debug.WriteLine("Error: Could Not Find Root!");
                 return;
             }
 
-            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2));
-
-            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // if argP is omitted, this becomes distance at a given time since periapsis
+            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
+            
+            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // distance from planet
 
             radius = distAtAnomaly;
 
@@ -239,7 +247,6 @@ namespace AlmostSpace.Things
         public void oldEquations()
         {
             // Math taken from: https://physics.stackexchange.com/questions/99094/using-2d-position-velocity-and-mass-to-determine-the-parametric-position-equat
-            // Might be kind of cheating because its basically my project? Ill ask.
             float semiMajorAxis = 0;
             float mu = 0;
             float velocityMagnitude = 0;
@@ -259,9 +266,10 @@ namespace AlmostSpace.Things
         {
             var kState = Keyboard.GetState();
 
+            // Stop and start time
             if (spaceToggle && kState.IsKeyDown(Keys.Space))
             {
-                timeStopped = !timeStopped;
+                engineOn = !engineOn;
                 spaceToggle = false;
             }
             if (kState.IsKeyUp(Keys.Space))
@@ -269,32 +277,59 @@ namespace AlmostSpace.Things
                 spaceToggle = true;
             }
 
+            if (pToggle && kState.IsKeyDown(Keys.P))
+            {
+                timeStopped = !timeStopped;
+                pToggle = false;
+            }
+            if (kState.IsKeyUp(Keys.P))
+            {
+                pToggle = true;
+            }
+
             if (timeStopped)
             {
                 return;
             }
 
+            if (kState.IsKeyDown(Keys.LeftShift) && throttle < 1)
+            {
+                throttle = throttle > 0.99f ? 1 : throttle + 0.01f;
+            }
 
-            float enginePower = 500f;
+            if (kState.IsKeyDown(Keys.LeftControl) && throttle > 0)
+            {
+                throttle = throttle < 0.01f ? 0 : throttle - 0.01f;
+            }
 
-            if (kState.IsKeyDown(Keys.Left))
+            if (kState.IsKeyDown(Keys.X))
+            {
+                throttle = 0;
+            }
+
+            if (kState.IsKeyDown(Keys.Z))
+            {
+                throttle = 1;
+            }
+
+            if (kState.IsKeyDown(Keys.A))
             {
                 angle -= 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
-            if (kState.IsKeyDown(Keys.Right))
+            if (kState.IsKeyDown(Keys.D))
             {
                 angle += 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
-            if (kState.IsKeyDown(Keys.Up))
+            if (engineOn)
             {
                 totalTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
                 updatePhysics();
 
-                forceGravity.X += enginePower * (float)Math.Cos(angle);
-                forceGravity.Y += enginePower * (float)Math.Sin(angle);
+                forceGravity.X += engineThrust * throttle * (float)Math.Cos(angle);
+                forceGravity.Y += engineThrust * throttle * (float)Math.Sin(angle);
                 physicsJustStopped = true;
 
 
@@ -307,7 +342,7 @@ namespace AlmostSpace.Things
             }
             else
             {
-                totalTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
+                totalTimeElapsed += gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
 
                 if (physicsJustStopped)
                 {
@@ -315,8 +350,13 @@ namespace AlmostSpace.Things
                     transitionToNoPhysics();
                     physicsJustStopped = false;
                 }
+                timeSinceStoppedPhysics += gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
+                if (timeSinceStoppedPhysics > 100000)
+                {
+                    physicsJustStopped = true;
+                }
 
-                updateNoPhysics(gameTime);
+                updateNoPhysics();
 
             }
 
@@ -415,13 +455,14 @@ namespace AlmostSpace.Things
 
         }
 
+        // Returns the magnitude of the given vector
         float getMagnitude(Vector2 v)
         {
             return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y); 
         }
 
         // Code adapted from https://www.geeksforgeeks.org/program-for-newton-raphson-method/
-        // Computes the eccentric anomaly using the newton-raphson root finding algorithm
+        // Computes the eccentric anomaly using the newton raphson root finding algorithm
         // Takes a guess (x), the eccentricity of the orbit, and the mean anomaly
         static double getEccentricAnomaly(double x, double eccentricity, double mAnomaly)
         {
@@ -436,6 +477,8 @@ namespace AlmostSpace.Things
                 x = x - h;
 
                 i++;
+
+                // Exit if it can't find a root
                 if (i > 100000)
                 {
                     return -1;
@@ -457,9 +500,27 @@ namespace AlmostSpace.Things
             return 1 - eccentricity * Math.Cos(x);
         }
 
+        // Converts the given angle in radians to degrees
         static float degrees(float angle)
         {
             return angle * 180 / MathHelper.Pi;
+        }
+
+        // Returns the time elapsed as a string in years, days, hh:mm:ss
+        public String getDisplayTime()
+        {
+            long totalSeconds = (long)totalTimeElapsed;
+            long seconds = totalSeconds % 60;
+            long minutes = (totalSeconds / 60) % 60;
+            long hours = (totalSeconds / 3600) % 24;
+            long days = (totalSeconds / 86400) % 365;
+            long years = (totalSeconds / 31536000);
+
+            String secondsString = (seconds + "").Length == 1 ? "0" + seconds : seconds + "";
+            String minutesString = (minutes + "").Length == 1 ? "0" + minutes : minutes + "";
+            String hoursString = (hours + "").Length == 1 ? "0" + hours : hours + "";
+
+            return "Year " + years + ", Day " + days + ", " + hoursString + ":" + minutesString + ":" + secondsString;
         }
 
     }

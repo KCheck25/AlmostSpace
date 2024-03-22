@@ -45,21 +45,21 @@ namespace AlmostSpace.Things
             var kState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
 
-            if (kState.IsKeyDown(Keys.W))
+            if (kState.IsKeyDown(Keys.Up))
             {
-                position.Y -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.Y -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.A))
+            if (kState.IsKeyDown(Keys.Left))
             {
-                position.X -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.X -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.S))
+            if (kState.IsKeyDown(Keys.Down))
             {
-                position.Y += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.Y += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.D))
+            if (kState.IsKeyDown(Keys.Right))
             {
-                position.X += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.X += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
 
             //Debug.WriteLine(mouseState.ScrollWheelValue);
