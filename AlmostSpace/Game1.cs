@@ -13,7 +13,6 @@ namespace AlmostSpace
         Texture2D rocketTexture;
         Texture2D earthTexture;
         Texture2D orbitTexture;
-        float displayAngle = 0;
 
         private SpriteFont uiFont;
 
@@ -22,6 +21,7 @@ namespace AlmostSpace
 
         private Rocket rocket;
         private Planet earth;
+        private SimClock clock;
 
         Camera camera;
 
@@ -55,7 +55,8 @@ namespace AlmostSpace
             orbitTexture = Content.Load<Texture2D>("OrbitPiece");
 
             earth = new Planet(earthTexture, 4E15f, new Vector2(0, 0));
-            rocket = new Rocket(rocketTexture, orbitTexture, 50, earth);
+            clock = new SimClock();
+            rocket = new Rocket(rocketTexture, orbitTexture, 50, earth, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -63,7 +64,8 @@ namespace AlmostSpace
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            rocket.Update(gameTime);
+            clock.Update(gameTime);
+            rocket.Update();
             camera.update(gameTime);
 
             base.Update(gameTime);
@@ -81,10 +83,10 @@ namespace AlmostSpace
 
 
             // Draw rocket, orbit information, and orbit
-            String time = rocket.getDisplayTime();
+            String time = clock.getDisplayTime();
             float timeWidth = uiFont.MeasureString(time).X;
 
-            String timeWarp = "Time warp: " + rocket.timeFactor + "x";
+            String timeWarp = "Time warp: " + clock.getTimeFactor() + "x";
             float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
 
             _spriteBatch.Begin();

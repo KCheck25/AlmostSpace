@@ -58,26 +58,20 @@ namespace AlmostSpace.Things
 
         bool physicsJustStopped = true;
         bool spaceToggle = true;
-        bool pToggle = true;
-        bool timeStopped = false;
         bool engineOn = false;
 
-        bool periodPressed = false;
-        bool commaPressed = false;
-
         public double totalTimeElapsed;
-
-        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000, 10000, 100000 };
-        int timeWarpLevel = 0;
 
         public float timeFactor;
 
         float engineThrust = 500f;
         float throttle = 1;
 
+        SimClock clock;
+
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D orbitTexture, float mass, Planet startingPlanet)
+        public Rocket(Texture2D texture, Texture2D orbitTexture, float mass, Planet startingPlanet, SimClock clock)
         {
             this.orbit = new List<OrbitSprite>();
             this.texture = texture;
@@ -87,7 +81,7 @@ namespace AlmostSpace.Things
             velocity = new Vector2(40f, 0f);
             position = new Vector2(0, 200);
             this.planetOrbiting = startingPlanet;
-            timeFactor = timeWarpLevels[timeWarpLevel];
+            this.clock = clock;
         }
 
         // Returns the rockets height above the planets surface in meters
@@ -172,6 +166,7 @@ namespace AlmostSpace.Things
 
             // Using vis-viva equation but solving for the semi major axis (a): https://en.wikipedia.org/wiki/Vis-viva_equation
             semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
+
             period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
 
             
@@ -262,7 +257,7 @@ namespace AlmostSpace.Things
         // velocity and position of the rocket based on the forces acting on it.
         // Takes the time since the last frame as a parameter to make sure
         // calculations are based on real time.
-        public void Update(GameTime gameTime)
+        public void Update()
         {
             var kState = Keyboard.GetState();
 
@@ -277,17 +272,7 @@ namespace AlmostSpace.Things
                 spaceToggle = true;
             }
 
-            if (pToggle && kState.IsKeyDown(Keys.P))
-            {
-                timeStopped = !timeStopped;
-                pToggle = false;
-            }
-            if (kState.IsKeyUp(Keys.P))
-            {
-                pToggle = true;
-            }
-
-            if (timeStopped)
+            if (clock.getTimeStopped())
             {
                 return;
             }
@@ -314,17 +299,16 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.A))
             {
-                angle -= 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                angle -= 3 * clock.getFrameTime();
             }
 
             if (kState.IsKeyDown(Keys.D))
             {
-                angle += 3 * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                angle += 3 * clock.getFrameTime();
             }
 
-            if (engineOn)
+            if (engineOn && clock.getTimeFactor() == 1)
             {
-                totalTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
                 updatePhysics();
 
@@ -333,16 +317,15 @@ namespace AlmostSpace.Things
                 physicsJustStopped = true;
 
 
-                velocity.X += forceGravity.X / mass * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                velocity.Y += forceGravity.Y / mass * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                velocity.X += forceGravity.X / mass * clock.getFrameTime();
+                velocity.Y += forceGravity.Y / mass * clock.getFrameTime();
 
-                position.X += velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                position.Y += velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                position.X += velocity.X * clock.getFrameTime();
+                position.Y += velocity.Y * clock.getFrameTime();
 
             }
             else
             {
-                totalTimeElapsed += gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
 
                 if (physicsJustStopped)
                 {
@@ -350,7 +333,7 @@ namespace AlmostSpace.Things
                     transitionToNoPhysics();
                     physicsJustStopped = false;
                 }
-                timeSinceStoppedPhysics += gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
+                timeSinceStoppedPhysics += clock.getFrameTime();
                 if (timeSinceStoppedPhysics > 100000)
                 {
                     physicsJustStopped = true;
@@ -359,36 +342,6 @@ namespace AlmostSpace.Things
                 updateNoPhysics();
 
             }
-
-            if (kState.IsKeyDown(Keys.OemPeriod) && !periodPressed)
-            {
-                if (timeWarpLevel < timeWarpLevels.Length - 1)
-                {
-                    timeWarpLevel++;
-                }
-                periodPressed = true;
-            }
-
-            if (kState.IsKeyDown(Keys.OemComma) && !commaPressed)
-            {
-                if (timeWarpLevel > 0)
-                {
-                    timeWarpLevel--;
-                }
-                commaPressed = true;
-            }
-
-            if (kState.IsKeyUp(Keys.OemPeriod))
-            {
-                periodPressed = false;
-            }
-
-            if (kState.IsKeyUp(Keys.OemComma))
-            {
-                commaPressed = false;
-            }
-
-            timeFactor = timeWarpLevels[timeWarpLevel];
 
         }
 
@@ -504,23 +457,6 @@ namespace AlmostSpace.Things
         static float degrees(float angle)
         {
             return angle * 180 / MathHelper.Pi;
-        }
-
-        // Returns the time elapsed as a string in years, days, hh:mm:ss
-        public String getDisplayTime()
-        {
-            long totalSeconds = (long)totalTimeElapsed;
-            long seconds = totalSeconds % 60;
-            long minutes = (totalSeconds / 60) % 60;
-            long hours = (totalSeconds / 3600) % 24;
-            long days = (totalSeconds / 86400) % 365;
-            long years = (totalSeconds / 31536000);
-
-            String secondsString = (seconds + "").Length == 1 ? "0" + seconds : seconds + "";
-            String minutesString = (minutes + "").Length == 1 ? "0" + minutes : minutes + "";
-            String hoursString = (hours + "").Length == 1 ? "0" + hours : hours + "";
-
-            return "Year " + years + ", Day " + days + ", " + hoursString + ":" + minutesString + ":" + secondsString;
         }
 
     }
