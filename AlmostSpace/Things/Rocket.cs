@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
+using System.ComponentModel;
 
 namespace AlmostSpace.Things
 {
@@ -48,6 +49,7 @@ namespace AlmostSpace.Things
         float semiMinorAxis;
         float e;
         float mu;
+        float aMomentum;
 
         double timeSinceStoppedPhysics;
 
@@ -78,8 +80,8 @@ namespace AlmostSpace.Things
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(40f, 0f);
-            position = new Vector2(0, 200);
+            velocity = new Vector2(-40f, 0f);
+            position = new Vector2(50, 200);
             this.planetOrbiting = startingPlanet;
             this.clock = clock;
         }
@@ -93,7 +95,7 @@ namespace AlmostSpace.Things
         // Returns the highest point above the surface tha the rocket will reach in meters
         public float getApoapsisHeight()
         {
-            return rApoapsis - planetOrbiting.getRadius();
+            return rApoapsis - planetOrbiting.getRadius() > 0 ? rApoapsis - planetOrbiting.getRadius() : float.NaN;
         }
 
         // Returns the lowest point above the surface tha the rocket will reach in meters
@@ -171,11 +173,11 @@ namespace AlmostSpace.Things
 
             
             // Equations taken from here: https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
-            float h = position.X * velocity.Y - position.Y * velocity.X; // angular momentum
+            aMomentum = position.X * velocity.Y - position.Y * velocity.X; // angular momentum
 
             // eccentricity vector
-            float eX = (velocity.Y * h) / mu - position.X / radius;
-            float eY = (-velocity.X * h) / mu - position.Y / radius;
+            float eX = (velocity.Y * aMomentum) / mu - position.X / radius;
+            float eY = (-velocity.X * aMomentum) / mu - position.Y / radius;
             eV = new Vector2(eX, eY);
             e = getMagnitude(eV);
 
@@ -187,9 +189,10 @@ namespace AlmostSpace.Things
             rPeriapsis = semiMajorAxis * (1 - e);
 
             semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
-            
+
             // Draw orbit to screen
-            generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
+            //generateTrajectory(semiMinorAxis, semiMajorAxis, 0, 0, -argP + MathHelper.PiOver2);
+            genTrajectory2(semiMajorAxis, e, argP);
         }
 
         // This method runs when switching between physics mode and non physics mode
@@ -198,28 +201,58 @@ namespace AlmostSpace.Things
         {
             timeSinceStoppedPhysics = 0;
             float currentTrueAnomaly = planetAngle - argP;
-            m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+            if (e > 1)
+            {
+                float hAnomaly = 2 * (float)Math.Atanh(Math.Tan(currentTrueAnomaly / 2) / Math.Sqrt((e + 1) / (e - 1)));
+                m0 = e * (float)Math.Sinh(hAnomaly) - hAnomaly;
+            }
+            else
+            {
+                m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+            }
         }
 
         // Recalculates the rocket's position in space and velocity based on its current orbital parameters
         // Allows time to be sped up without losing precision
         public void updateNoPhysics()
         {
+
             float timePassed = (float)timeSinceStoppedPhysics;
 
-            float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed + m0; // mean anomaly
-
-            float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly); // eccentric anomaly
-
-            // don't update vectors if eccentric anomaly calculation gets stuck for some reason
-            if (eAnomaly == -1)
+            float tAnomaly = 0;
+            if (e <= 1)
             {
-                Debug.WriteLine("Error: Could Not Find Root!");
-                return;
+                // Elliptical orbits
+                float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // mean anomaly
+                
+                float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly); // eccentric anomaly
+
+                // don't update vectors if eccentric anomaly calculation gets stuck for some reason
+                if (eAnomaly == -1)
+                {
+                    Debug.WriteLine("Error: Could Not Find Root!");
+                    return;
+                }
+
+                tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
+            } 
+            else
+            {
+                // Hyperbolic orbits
+
+                float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(-semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // hyperbolic mean anomaly
+
+                float hAnomaly = (float)getEccentricAnomaly(mAnomaly, e, mAnomaly); // hyperbolic anomaly
+
+                if (hAnomaly == -1)
+                {
+                    Debug.WriteLine("Error: Could Not Find Root!");
+                    return;
+                }
+
+                tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((e + 1) / (e - 1)) * Math.Tanh(hAnomaly / 2)); // true anomaly
             }
 
-            float tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
-            
             float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // distance from planet
 
             radius = distAtAnomaly;
@@ -227,9 +260,8 @@ namespace AlmostSpace.Things
             vMagnitude = (float)Math.Sqrt(mu * (2 / distAtAnomaly - 1 / semiMajorAxis));
 
             // https://physics.stackexchange.com/questions/669946/how-to-calculate-the-direction-of-the-velocity-vector-for-a-body-that-moving-is
-            float vY = -(float)Math.Sin(tAnomaly) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude;
-            float vX = (float)(e + Math.Cos(tAnomaly)) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude;
-
+            float vY = -(float)Math.Sin(tAnomaly) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
+            float vX = (float)(e + Math.Cos(tAnomaly)) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
 
             // https://matthew-brett.github.io/teaching/rotation_2d.html
             velocity.X = (float)(Math.Cos(-argP - MathHelper.PiOver2) * vX - Math.Sin(-argP - MathHelper.PiOver2) * vY);
@@ -237,6 +269,7 @@ namespace AlmostSpace.Things
 
             position.X = distAtAnomaly * (float)Math.Cos(tAnomaly + argP);
             position.Y = -distAtAnomaly * (float)Math.Sin(tAnomaly + argP);
+
         }
 
         public void oldEquations()
@@ -261,7 +294,7 @@ namespace AlmostSpace.Things
         {
             var kState = Keyboard.GetState();
 
-            // Stop and start time
+            // Stop and start engine
             if (spaceToggle && kState.IsKeyDown(Keys.Space))
             {
                 engineOn = !engineOn;
@@ -356,46 +389,34 @@ namespace AlmostSpace.Things
             spriteBatch.Draw(texture, Vector2.Transform(position, transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
-        // Generates a list of OrbitSprite objects arranged in an elipse with
-        // the given semi-major and semi-minor axes (a and b), and the given
-        // origin of the elipse (h and k)
-        // Adapted from this helpful stack overflow dude's code: https://stackoverflow.com/questions/21511281/draw-an-ellipse-in-xna
-        public void generateTrajectory(float a, float b, float h, float k, float theta)
+        // Generates a list of OrbitSprite objects arranged in the rocket's trajectory
+        // using the given semi-major axis (a), eccentricity (e), and argument of periapsis (argP)
+        public void genTrajectory2(float a, float e, float argP)
         {
-            
-            float sMajor = Math.Max(a, b);
-            float sMinor = Math.Min(a, b);
-
-            float cDist = (float)Math.Pow(sMajor * sMajor - sMinor * sMinor, 0.5);
-
-            h -= cDist * (float)Math.Sin(theta);
-            k += cDist * (float)Math.Cos(theta);
-
-            Matrix rotation = Matrix.CreateRotationZ(theta);
-
             int numPoints = 1000;
             Vector2[] points = new Vector2[numPoints];
 
-            float step = MathHelper.TwoPi / numPoints;
-            //Debug.WriteLine(step);
+            float rMax = 200000;
+            float tMax = MathHelper.Pi;
+
+            if (e >= 1)
+            {
+                tMax = (float)Math.Acos((a * (1 - e * e) - rMax) / (e * rMax));
+            }
+
+            float step = (tMax * 2) / numPoints;
 
             int i = 0;
-            for (float t = -MathHelper.Pi; t <= MathHelper.Pi; t += step)
+
+            for (float t = -tMax; t <= tMax; t += step)
             {
-                if (i <= numPoints - 1)
+                float r = getRadiusAtAngle(a, e, t);
+                if (i < numPoints)
                 {
-                    points[i] = Vector2.Transform(new Vector2((int)(a * (float)Math.Cos((double)t)), (int)(b * (float)Math.Sin((double)t))), rotation);
+                    points[i] = new Vector2(r * (float)Math.Cos(t + argP), -r * (float)Math.Sin(t + argP));
                 }
-                //Debug.WriteLine(points[i]);
                 i++;
             }
-
-            for (int j = 0; j < points.Length; j++)
-            {
-                points[j].X += h;
-                points[j].Y += k;
-            }
-
 
             orbit = new List<OrbitSprite>();
             for (int j = 0; j < numPoints; j++)
@@ -403,9 +424,12 @@ namespace AlmostSpace.Things
                 orbit.Add(new OrbitSprite(orbitTexture, points[j]));
                 //Debug.WriteLine(points[j]);
             }
+        }
 
-            //Debug.WriteLine(orbit.Count);
-
+        // Gets the radius of the rocket at a given angle
+        public float getRadiusAtAngle(float a, float e, float theta)
+        {
+            return a * (1 - e * e) / (1 + e * (float)Math.Cos(theta));
         }
 
         // Returns the magnitude of the given vector
@@ -444,13 +468,27 @@ namespace AlmostSpace.Things
         // Mean and eccentric anomaly function
         static double func(double x, double eccentricity, double meanAnomaly)
         {
-            return x - eccentricity * Math.Sin(x) - meanAnomaly;
+            if (eccentricity < 1)
+            {
+                return x - eccentricity * Math.Sin(x) - meanAnomaly;
+            } 
+            else
+            {
+                return eccentricity * Math.Sinh(x) - x - meanAnomaly;
+            }
         }
 
         // First derivative of mean and eccentric anomaly function
         static double derivFunc(double x, double eccentricity)
         {
-            return 1 - eccentricity * Math.Cos(x);
+            if (eccentricity < 1)
+            {
+                return 1 - eccentricity * Math.Cos(x);
+            }
+            else
+            {
+                return eccentricity * Math.Cosh(x) - 1;
+            }
         }
 
         // Converts the given angle in radians to degrees
