@@ -34,6 +34,8 @@ namespace AlmostSpace.Things
 
         Texture2D texture;
         Texture2D orbitTexture;
+        Texture2D apIndicator;
+        Texture2D peIndicator;
         List<OrbitSprite> orbit;
 
         Planet planetOrbiting;
@@ -66,24 +68,26 @@ namespace AlmostSpace.Things
 
         public float timeFactor;
 
-        float engineThrust = 500f;
+        float engineThrust = 5000f;
         float throttle = 1;
 
         SimClock clock;
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D orbitTexture, float mass, Planet startingPlanet, SimClock clock)
+        public Rocket(Texture2D texture, Texture2D orbitTexture, Texture2D apIndicator, Texture2D peIndicator, float mass, Planet startingPlanet, SimClock clock)
         {
             this.orbit = new List<OrbitSprite>();
             this.texture = texture;
             this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(-40f, 0f);
-            position = new Vector2(50, 200);
+            velocity = new Vector2(8000f, 0f);
+            position = new Vector2(50, 6500000);
             this.planetOrbiting = startingPlanet;
             this.clock = clock;
+            this.apIndicator = apIndicator;
+            this.peIndicator = peIndicator;
         }
 
         // Returns the rockets height above the planets surface in meters
@@ -238,7 +242,7 @@ namespace AlmostSpace.Things
             } 
             else
             {
-                // Hyperbolic orbits
+                // Hyperbolic orbits (https://control.asu.edu/Classes/MAE462/462Lecture05.pdf)
 
                 float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(-semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // hyperbolic mean anomaly
 
@@ -386,6 +390,15 @@ namespace AlmostSpace.Things
             {
                 pixel.Draw(spriteBatch, transform);
             }
+            
+            if (e < 1)
+            {
+                Vector2 apPos = new Vector2((float)Math.Cos(argP + MathHelper.Pi) * rApoapsis, -(float)Math.Sin(argP + MathHelper.Pi) * rApoapsis);
+                spriteBatch.Draw(apIndicator, Vector2.Transform(apPos, transform), null, Color.White, 0f, new Vector2(apIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+            }
+            Vector2 pePos = new Vector2((float)Math.Cos(argP) * rPeriapsis, -(float)Math.Sin(argP) * rPeriapsis);
+            spriteBatch.Draw(peIndicator, Vector2.Transform(pePos, transform), null, Color.White, 0f, new Vector2(peIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+
             spriteBatch.Draw(texture, Vector2.Transform(position, transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
@@ -396,9 +409,10 @@ namespace AlmostSpace.Things
             int numPoints = 1000;
             Vector2[] points = new Vector2[numPoints];
 
-            float rMax = 200000;
+            float rMax = planetOrbiting.getRadius() * 10;
             float tMax = MathHelper.Pi;
 
+            // Limit angle for hyperbolic trajectories to a max radius
             if (e >= 1)
             {
                 tMax = (float)Math.Acos((a * (1 - e * e) - rMax) / (e * rMax));
@@ -422,7 +436,6 @@ namespace AlmostSpace.Things
             for (int j = 0; j < numPoints; j++)
             {
                 orbit.Add(new OrbitSprite(orbitTexture, points[j]));
-                //Debug.WriteLine(points[j]);
             }
         }
 
@@ -446,7 +459,7 @@ namespace AlmostSpace.Things
 
             double h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
             int i = 0;
-            while (Math.Abs(h) >= 0.0001)
+            while (Math.Abs(h) >= 0.00001)
             {
                 h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
 
@@ -456,13 +469,13 @@ namespace AlmostSpace.Things
                 i++;
 
                 // Exit if it can't find a root
-                if (i > 100000)
+                if (i > 1000000)
                 {
                     return -1;
                 }
             }
 
-            return Math.Round(x * 1000) / 1000;
+            return Math.Round(x * 100000) / 100000;
         }
 
         // Mean and eccentric anomaly function

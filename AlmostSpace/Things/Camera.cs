@@ -36,7 +36,7 @@ namespace AlmostSpace.Things
         public Camera()
         {
             position = new Vector2(0, 0);
-            zoom = 1f;
+            zoom = 0.00006f;
         }
 
         // Change the camera position / zoom based on user inputs

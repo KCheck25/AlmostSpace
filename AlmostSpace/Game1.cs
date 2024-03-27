@@ -13,6 +13,8 @@ namespace AlmostSpace
         Texture2D rocketTexture;
         Texture2D earthTexture;
         Texture2D orbitTexture;
+        Texture2D apIndicator;
+        Texture2D peIndicator;
 
         private SpriteFont uiFont;
 
@@ -53,10 +55,12 @@ namespace AlmostSpace
             earthTexture = Content.Load<Texture2D>("Earth");
             uiFont = Content.Load<SpriteFont>("OrbitInfo");
             orbitTexture = Content.Load<Texture2D>("OrbitPiece");
+            apIndicator = Content.Load<Texture2D>("APindicator");
+            peIndicator = Content.Load<Texture2D>("pIndicator");
 
-            earth = new Planet(earthTexture, 4E15f, new Vector2(0, 0));
+            earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
             clock = new SimClock();
-            rocket = new Rocket(rocketTexture, orbitTexture, 50, earth, clock);
+            rocket = new Rocket(rocketTexture, orbitTexture, apIndicator, peIndicator, 50, earth, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -91,10 +95,10 @@ namespace AlmostSpace
 
             _spriteBatch.Begin();
             rocket.Draw(_spriteBatch, camera.transform);
-            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight()) + "m", new Vector2(25, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocity()) + "m/s", new Vector2(25, 60), Color.White);
-            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight()) + "m", new Vector2(25, 95), Color.White);
-            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()) + "m", new Vector2(25, 130), Color.White);
+            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
+            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocity() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
+            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);
+            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()/ 10) / 100 + "km", new Vector2(25, 130), Color.White);
             _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
             _spriteBatch.DrawString(uiFont, "Throttle: " + rocket.getThrottle() + "%", new Vector2(25, 270), Color.White);
             _spriteBatch.DrawString(uiFont, time, new Vector2(1895 - timeWidth, 25), Color.White);
