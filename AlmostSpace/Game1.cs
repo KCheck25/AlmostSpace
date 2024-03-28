@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace AlmostSpace
@@ -23,6 +24,7 @@ namespace AlmostSpace
 
         private Rocket rocket;
         private Planet earth;
+        private Planet moon;
         private SimClock clock;
 
         Camera camera;
@@ -58,9 +60,10 @@ namespace AlmostSpace
             apIndicator = Content.Load<Texture2D>("APindicator");
             peIndicator = Content.Load<Texture2D>("pIndicator");
 
-            earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
             clock = new SimClock();
-            rocket = new Rocket(rocketTexture, orbitTexture, apIndicator, peIndicator, 50, earth, clock);
+            earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
+            moon = new Planet(earthTexture, 7.35E22f, new Vector2(384400E3F, 0), 1.74E6f, earth, clock, GraphicsDevice);
+            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, earth, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -70,6 +73,7 @@ namespace AlmostSpace
 
             clock.Update(gameTime);
             rocket.Update();
+            moon.update();
             camera.update(gameTime);
 
             base.Update(gameTime);
@@ -82,7 +86,8 @@ namespace AlmostSpace
 
             // Draw earth
             _spriteBatch.Begin(transformMatrix: camera.transform);
-            earth.Draw(_spriteBatch);
+            earth.Draw(_spriteBatch, camera.transform);
+            moon.Draw(_spriteBatch, camera.transform);
             _spriteBatch.End();
 
 

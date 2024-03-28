@@ -12,7 +12,7 @@ namespace AlmostSpace.Things
     // Simple sprite to serve as one unit of an orbit representation
     internal class OrbitSprite
     {
-        Vector2 position;
+        public Vector2 position;
         Texture2D texture;
 
         // Constructs a new OrbitSprite object with the given texture and position

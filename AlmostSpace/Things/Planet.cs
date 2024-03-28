@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace AlmostSpace.Things
 {
@@ -16,6 +17,11 @@ namespace AlmostSpace.Things
         Vector2 position;
         float radius;
 
+        Planet orbiting;
+        GraphicsDevice graphicsDevice;
+        Orbit orbit;
+        SimClock clock;
+
         // Creates a new planet using the given texture, mass, and position
         public Planet(Texture2D texture, float mass, Vector2 position, float radius)
         {
@@ -23,6 +29,19 @@ namespace AlmostSpace.Things
             this.mass = mass;
             this.position = position;
             this.radius = radius;
+        }
+
+        public Planet(Texture2D texture, float mass, Vector2 position, float radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice)
+        {
+            this.texture = texture;
+            this.mass = mass;
+            this.position = position;
+            this.radius = radius;
+            this.orbiting = orbiting;
+            this.graphicsDevice = graphicsDevice;
+            
+            orbit = new Orbit(orbiting, position, new Vector2(0f, 1000f), clock, graphicsDevice);
+            orbit.update(new Vector2());
         }
 
         // Returns the mass of this planet
@@ -37,16 +56,35 @@ namespace AlmostSpace.Things
             return position;
         }
 
+        public Vector2 getVelocity()
+        {
+            return orbit == null ? new Vector2() : orbit.getVelocity();
+        }
+
         // Returns the radius of the planet's surface
         public float getRadius()
         {
             return radius;
         }
 
+        public void update()
+        {
+            if (orbit != null)
+            {
+                orbit.update();
+                position = orbit.getPosition();
+                //Debug.WriteLine(position);
+            }
+        }
+
         // Draws this planet to the screen using the given SpriteBatch object
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
             spriteBatch.Draw(texture, position, null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), 2 * radius / texture.Width, SpriteEffects.None, 0f);
+            if (orbit != null)
+            {
+                orbit.Draw(transform);
+            }
         }
 
     }

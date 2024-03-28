@@ -99,6 +99,10 @@ namespace AlmostSpace.Things
         // gets the time the last game loop took
         public float getFrameTime()
         {
+            if (gameTime == null)
+            {
+                return 1f / 60f;
+            }
             return (float)gameTime.ElapsedGameTime.TotalSeconds * timeFactor;
         }
 

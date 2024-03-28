@@ -11,6 +11,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.ComponentModel;
+using System.Transactions;
+using System.Net.Sockets;
 
 namespace AlmostSpace.Things
 {
@@ -33,10 +35,9 @@ namespace AlmostSpace.Things
         float mass;
 
         Texture2D texture;
-        Texture2D orbitTexture;
         Texture2D apIndicator;
         Texture2D peIndicator;
-        List<OrbitSprite> orbit;
+        VertexPositionColor[] orbit;
 
         Planet planetOrbiting;
 
@@ -73,21 +74,31 @@ namespace AlmostSpace.Things
 
         SimClock clock;
 
+        GraphicsDevice graphicsDevice;
+        BasicEffect basicEffect;
+
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D orbitTexture, Texture2D apIndicator, Texture2D peIndicator, float mass, Planet startingPlanet, SimClock clock)
+        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock)
         {
-            this.orbit = new List<OrbitSprite>();
+            this.orbit = new VertexPositionColor[0];
             this.texture = texture;
-            this.orbitTexture = orbitTexture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(8000f, 0f);
+            velocity = new Vector2(8000f, 0f); // 11069 to break things
             position = new Vector2(50, 6500000);
             this.planetOrbiting = startingPlanet;
             this.clock = clock;
             this.apIndicator = apIndicator;
             this.peIndicator = peIndicator;
+            this.graphicsDevice = graphicsDevice;
+
+            basicEffect = new BasicEffect(graphicsDevice);
+            basicEffect.VertexColorEnabled = true;
+            basicEffect.Projection = Matrix.CreateOrthographicOffCenter
+            (0, graphicsDevice.Viewport.Width,     // left, right
+            graphicsDevice.Viewport.Height, 0,    // bottom, top
+            0, 1);
         }
 
         // Returns the rockets height above the planets surface in meters
@@ -136,7 +147,7 @@ namespace AlmostSpace.Things
         // on the rocket in the x and y directions
         void updatePhysics()
         {
-            Vector2 planetPosition = planetOrbiting.getPosition();
+            Vector2 planetPosition = new Vector2(0, 0);
             float massPlanet = planetOrbiting.getMass();
             float xDist = (position.X - planetPosition.X);
             float yDist = -(position.Y - planetPosition.Y);
@@ -386,20 +397,22 @@ namespace AlmostSpace.Things
         // using the given SpriteBatch object
         public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
-            foreach (OrbitSprite pixel in orbit)
-            {
-                pixel.Draw(spriteBatch, transform);
-            }
-            
+            // draw orbit
+            basicEffect.View = transform;
+            basicEffect.CurrentTechnique.Passes[0].Apply();
+            graphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineStrip, orbit, 0, orbit.Length - 1);
+
+            // Draw apoapsis and periapsis indicators
             if (e < 1)
             {
                 Vector2 apPos = new Vector2((float)Math.Cos(argP + MathHelper.Pi) * rApoapsis, -(float)Math.Sin(argP + MathHelper.Pi) * rApoapsis);
-                spriteBatch.Draw(apIndicator, Vector2.Transform(apPos, transform), null, Color.White, 0f, new Vector2(apIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                spriteBatch.Draw(apIndicator, Vector2.Transform(apPos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(apIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
             }
             Vector2 pePos = new Vector2((float)Math.Cos(argP) * rPeriapsis, -(float)Math.Sin(argP) * rPeriapsis);
-            spriteBatch.Draw(peIndicator, Vector2.Transform(pePos, transform), null, Color.White, 0f, new Vector2(peIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+            spriteBatch.Draw(peIndicator, Vector2.Transform(pePos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(peIndicator.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
 
-            spriteBatch.Draw(texture, Vector2.Transform(position, transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            // Draw rocket
+            spriteBatch.Draw(texture, Vector2.Transform(position + planetOrbiting.getPosition(), transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
         // Generates a list of OrbitSprite objects arranged in the rocket's trajectory
@@ -407,7 +420,8 @@ namespace AlmostSpace.Things
         public void genTrajectory2(float a, float e, float argP)
         {
             int numPoints = 1000;
-            Vector2[] points = new Vector2[numPoints];
+
+            orbit = new VertexPositionColor[e > 1 ? numPoints : numPoints + 1];
 
             float rMax = planetOrbiting.getRadius() * 10;
             float tMax = MathHelper.Pi;
@@ -425,18 +439,18 @@ namespace AlmostSpace.Things
             for (float t = -tMax; t <= tMax; t += step)
             {
                 float r = getRadiusAtAngle(a, e, t);
+                VertexPositionColor point = new VertexPositionColor(new Vector3(r * (float)Math.Cos(t + argP) + planetOrbiting.getPosition().X, -r * (float)Math.Sin(t + argP) + planetOrbiting.getPosition().Y, 0), Color.White);
                 if (i < numPoints)
                 {
-                    points[i] = new Vector2(r * (float)Math.Cos(t + argP), -r * (float)Math.Sin(t + argP));
+                    orbit[i] = point;
+                }
+                if (i == 0 && e < 1)
+                {
+                    orbit[orbit.Length - 1] = point;
                 }
                 i++;
             }
 
-            orbit = new List<OrbitSprite>();
-            for (int j = 0; j < numPoints; j++)
-            {
-                orbit.Add(new OrbitSprite(orbitTexture, points[j]));
-            }
         }
 
         // Gets the radius of the rocket at a given angle
@@ -502,12 +516,6 @@ namespace AlmostSpace.Things
             {
                 return eccentricity * Math.Cosh(x) - 1;
             }
-        }
-
-        // Converts the given angle in radians to degrees
-        static float degrees(float angle)
-        {
-            return angle * 180 / MathHelper.Pi;
         }
 
     }
