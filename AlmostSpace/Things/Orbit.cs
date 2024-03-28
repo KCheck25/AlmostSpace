@@ -22,6 +22,9 @@ namespace AlmostSpace.Things
 
         Planet planetOrbiting;
 
+        Texture2D apTexture;
+        Texture2D peTexture;
+
         float radius;           // distance from body (m)
         float planetAngle;      // angle from body to current position (rad)
         float mu;               // gravitation parameter for current body
@@ -67,6 +70,27 @@ namespace AlmostSpace.Things
 
         }
 
+        public Orbit(Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
+        {
+            this.planetOrbiting = planetOrbiting;
+            this.objectPosition = objectPosition;
+            this.objectVelocity = objectVelocity;
+            this.clock = clock;
+            this.graphicsDevice = graphicsDevice;
+            this.apTexture = apTexture;
+            this.peTexture = peTexture;
+
+            mu = planetOrbiting.getMass() * universalGravity;
+
+            basicEffect = new BasicEffect(graphicsDevice);
+            basicEffect.VertexColorEnabled = true;
+            basicEffect.Projection = Matrix.CreateOrthographicOffCenter
+            (0, graphicsDevice.Viewport.Width,     // left, right
+            graphicsDevice.Viewport.Height, 0,    // bottom, top
+            0, 1);
+
+        }
+
         public void update(Vector2 objectAcceleration)
         {
             wasPhysics = true;
@@ -88,13 +112,15 @@ namespace AlmostSpace.Things
             gravityAcceleration.X = xAccel;
             gravityAcceleration.Y = yAccel;
 
-            objectVelocity += gravityAcceleration + objectAcceleration * clock.getFrameTime();
+            objectVelocity += (gravityAcceleration + objectAcceleration) * clock.getFrameTime();
             objectPosition += objectVelocity * clock.getFrameTime();
 
             calculateParameters();
             generatePath(1000);
         }
 
+        // Recalculates the rocket's position in space and velocity based on its current orbital parameters
+        // Allows time to be sped up without losing precision
         public void update()
         {
             if (wasPhysics)
@@ -111,7 +137,7 @@ namespace AlmostSpace.Things
                 // Elliptical orbits
                 float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // mean anomaly
 
-                float eAnomaly = (float)getEccentricAnomaly(0, e, mAnomaly); // eccentric anomaly
+                float eAnomaly = (float)getEccentricAnomaly(mAnomaly, e, mAnomaly); // eccentric anomaly
 
                 // don't update vectors if eccentric anomaly calculation gets stuck for some reason
                 if (eAnomaly == -1)
@@ -157,13 +183,23 @@ namespace AlmostSpace.Things
             objectPosition.Y = -distAtAnomaly * (float)Math.Sin(tAnomaly + argP);
         }
 
-        public void Draw(Matrix transform)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
             if (path != null)
             {
                 basicEffect.View = transform;
                 basicEffect.CurrentTechnique.Passes[0].Apply();
                 graphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineStrip, path, 0, path.Length - 1);
+            }
+            if (apTexture != null && peTexture != null)
+            {
+                if (e < 1)
+                {
+                    Vector2 apPos = new Vector2((float)Math.Cos(argP + MathHelper.Pi) * rApoapsis, -(float)Math.Sin(argP + MathHelper.Pi) * rApoapsis);
+                    spriteBatch.Draw(apTexture, Vector2.Transform(apPos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(apTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                }
+                Vector2 pePos = new Vector2((float)Math.Cos(argP) * rPeriapsis, -(float)Math.Sin(argP) * rPeriapsis);
+                spriteBatch.Draw(peTexture, Vector2.Transform(pePos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(peTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
             }
         }
 
@@ -332,6 +368,52 @@ namespace AlmostSpace.Things
         public float getSemiMajorAxis()
         {
             return semiMajorAxis;
+        }
+
+        // Returns the rockets height above the planets surface in meters
+        public float getHeight()
+        {
+            return radius - planetOrbiting.getRadius();
+        }
+
+        // Returns the highest point above the surface tha the rocket will reach in meters
+        public float getApoapsisHeight()
+        {
+            return rApoapsis - planetOrbiting.getRadius() > 0 ? rApoapsis - planetOrbiting.getRadius() : float.NaN;
+        }
+
+        // Returns the lowest point above the surface tha the rocket will reach in meters
+        public float getPeriapsisHeight()
+        {
+            return rPeriapsis - planetOrbiting.getRadius();
+        }
+
+        // Returns the magnitude of the rocket's velocity
+        public float getVelocityMagnitude()
+        {
+            return vMagnitude;
+        }
+
+        // Returns the period of the rockets current orbit in seconds
+        public float getPeriod()
+        {
+            return period;
+        }
+
+        public void oldEquations()
+        {
+            /*
+            // Math taken from: https://physics.stackexchange.com/questions/99094/using-2d-position-velocity-and-mass-to-determine-the-parametric-position-equat
+            float semiMajorAxis = 0;
+            float mu = 0;
+            float velocityMagnitude = 0;
+
+            float tanV = (position.X * velocity.Y - position.Y * velocity.X) / radius;
+            float e = (float)Math.Pow(1 + (radius * tanV * tanV / mu) * (radius * velocityMagnitude * velocityMagnitude / mu - 2), 0.5);
+            float radV = (position.X * velocity.X + position.Y * velocity.Y) / radius;
+            float angle = Math.Sign(tanV * radV) * (float)Math.Acos((semiMajorAxis * (1 - e * e) - radius) / (e * radius)) - (float)Math.Atan2(position.Y, position.X);
+            */
+
         }
 
     }

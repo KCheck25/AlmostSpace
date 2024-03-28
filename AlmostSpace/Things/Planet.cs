@@ -94,7 +94,7 @@ namespace AlmostSpace.Things
             if (orbit != null)
             {
                 spriteBatch.Draw(soiTexture, position, null, Color.White, 0f, new Vector2(soiTexture.Width / 2, soiTexture.Height / 2), 2 * soi / soiTexture.Width, SpriteEffects.None, 0f);
-                orbit.Draw(transform);
+                orbit.Draw(spriteBatch, transform);
             }
             spriteBatch.Draw(texture, position, null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), 2 * radius / texture.Width, SpriteEffects.None, 0f);
             
