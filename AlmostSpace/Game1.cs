@@ -16,6 +16,7 @@ namespace AlmostSpace
         Texture2D orbitTexture;
         Texture2D apIndicator;
         Texture2D peIndicator;
+        Texture2D soiTexture;
 
         private SpriteFont uiFont;
 
@@ -59,10 +60,11 @@ namespace AlmostSpace
             orbitTexture = Content.Load<Texture2D>("OrbitPiece");
             apIndicator = Content.Load<Texture2D>("APindicator");
             peIndicator = Content.Load<Texture2D>("pIndicator");
+            soiTexture = Content.Load<Texture2D>("SOI");
 
             clock = new SimClock();
             earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
-            moon = new Planet(earthTexture, 7.35E22f, new Vector2(384400E3F, 0), 1.74E6f, earth, clock, GraphicsDevice);
+            moon = new Planet(earthTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), 1.74E6f, earth, clock, GraphicsDevice);
             rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, earth, clock);
         }
 

@@ -47,6 +47,8 @@ namespace AlmostSpace.Things
         BasicEffect basicEffect;
         GraphicsDevice graphicsDevice;
 
+        Boolean wasPhysics = true;
+
         public Orbit(Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
@@ -67,6 +69,8 @@ namespace AlmostSpace.Things
 
         public void update(Vector2 objectAcceleration)
         {
+            wasPhysics = true;
+
             float massPlanet = planetOrbiting.getMass();
             float xDist = objectPosition.X;
             float yDist = -objectPosition.Y;
@@ -93,6 +97,11 @@ namespace AlmostSpace.Things
 
         public void update()
         {
+            if (wasPhysics)
+            {
+                transitionToNoPhysics();
+                wasPhysics = false;
+            }
             timeSinceStoppedPhysics += clock.getFrameTime();
             float timePassed = (float)timeSinceStoppedPhysics;
 
@@ -228,6 +237,23 @@ namespace AlmostSpace.Things
 
         }
 
+        // This method runs when switching between physics mode and non physics mode
+        // It's main purpose is to compute the rocket's mean anomaly at the time of making this switch
+        public void transitionToNoPhysics()
+        {
+            timeSinceStoppedPhysics = 0;
+            float currentTrueAnomaly = planetAngle - argP;
+            if (e > 1)
+            {
+                float hAnomaly = 2 * (float)Math.Atanh(Math.Tan(currentTrueAnomaly / 2) / Math.Sqrt((e + 1) / (e - 1)));
+                m0 = e * (float)Math.Sinh(hAnomaly) - hAnomaly;
+            }
+            else
+            {
+                m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+            }
+        }
+
         // Gets the radius of the rocket at a given angle
         public float getRadiusAtAngle(float a, float e, float theta)
         {
@@ -301,6 +327,11 @@ namespace AlmostSpace.Things
         public Vector2 getVelocity()
         {
             return objectVelocity;
+        }
+
+        public float getSemiMajorAxis()
+        {
+            return semiMajorAxis;
         }
 
     }
