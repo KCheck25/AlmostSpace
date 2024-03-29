@@ -50,7 +50,7 @@ namespace AlmostSpace.Things
         BasicEffect basicEffect;
         GraphicsDevice graphicsDevice;
 
-        Boolean wasPhysics = true;
+        bool wasPhysics = true;
 
         public Orbit(Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
@@ -91,7 +91,7 @@ namespace AlmostSpace.Things
 
         }
 
-        public void update(Vector2 objectAcceleration)
+        public void Update(Vector2 objectAcceleration)
         {
             wasPhysics = true;
 
@@ -116,12 +116,12 @@ namespace AlmostSpace.Things
             objectPosition += objectVelocity * clock.getFrameTime();
 
             calculateParameters();
-            generatePath(1000);
+            //generatePath(1000);
         }
 
         // Recalculates the rocket's position in space and velocity based on its current orbital parameters
         // Allows time to be sped up without losing precision
-        public void update()
+        public void Update()
         {
             if (wasPhysics)
             {
@@ -185,6 +185,7 @@ namespace AlmostSpace.Things
 
         public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
+            generatePath(1000);
             if (path != null)
             {
                 basicEffect.View = transform;
@@ -243,11 +244,11 @@ namespace AlmostSpace.Things
         {
             path = new VertexPositionColor[e > 1 ? numPoints : numPoints + 1];
 
-            float rMax = planetOrbiting.getRadius() * 10;
+            float rMax = planetOrbiting.getSOI();
             float tMax = MathHelper.Pi;
 
             // Limit angle for hyperbolic trajectories to a max radius
-            if (e >= 1)
+            if (e > 1 && rMax > 0)
             {
                 tMax = (float)Math.Acos((semiMajorAxis * (1 - e * e) - rMax) / (e * rMax));
             }
@@ -260,6 +261,10 @@ namespace AlmostSpace.Things
             {
                 float r = getRadiusAtAngle(semiMajorAxis, e, t);
                 VertexPositionColor point = new VertexPositionColor(new Vector3(r * (float)Math.Cos(t + argP) + planetOrbiting.getPosition().X, -r * (float)Math.Sin(t + argP) + planetOrbiting.getPosition().Y, 0), Color.White);
+                if (r > planetOrbiting.getSOI() && planetOrbiting.getSOI() != 0)
+                {
+                    point.Color = Color.Black;
+                }
                 if (i < numPoints)
                 {
                     path[i] = point;
@@ -350,7 +355,7 @@ namespace AlmostSpace.Things
         }
 
         // Returns the magnitude of the given vector
-        float getMagnitude(Vector2 v)
+        public static float getMagnitude(Vector2 v)
         {
             return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y);
         }
@@ -398,6 +403,18 @@ namespace AlmostSpace.Things
         public float getPeriod()
         {
             return period;
+        }
+
+        public void setPlanetOrbiting(Planet planet)
+        {
+            Debug.WriteLine(objectPosition + " " + planetOrbiting.getPosition());
+            objectPosition = getPosition() + planetOrbiting.getPosition();
+            Debug.WriteLine(objectPosition);
+            objectVelocity = getVelocity() + planetOrbiting.getVelocity() - planet.getVelocity();
+            planetOrbiting = planet;
+            clock.setTimeFactor(1);
+            Update(new Vector2());
+
         }
 
         public void oldEquations()

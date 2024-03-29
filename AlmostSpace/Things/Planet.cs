@@ -42,9 +42,10 @@ namespace AlmostSpace.Things
             this.orbiting = orbiting;
             this.graphicsDevice = graphicsDevice;
             this.soiTexture = soiTexture;
+            this.clock = clock;
             
             orbit = new Orbit(orbiting, position, new Vector2(0f, 1000f), clock, graphicsDevice);
-            orbit.update(new Vector2());
+            orbit.Update(new Vector2());
 
             soi = orbit.getSemiMajorAxis() * (float)Math.Pow(mass / orbiting.getMass(), 0.4);
             Debug.WriteLine(soi);
@@ -80,9 +81,9 @@ namespace AlmostSpace.Things
 
         public void update()
         {
-            if (orbit != null)
+            if (orbit != null && !clock.getTimeStopped())
             {
-                orbit.update();
+                orbit.Update();
                 position = orbit.getPosition();
                 //Debug.WriteLine(position);
             }

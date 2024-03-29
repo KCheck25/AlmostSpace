@@ -17,14 +17,16 @@ namespace AlmostSpace.Things
         {
             get
             {
-                return Matrix.CreateTranslation(-(int) position.X, -(int) position.Y, 0)
+                return Matrix.CreateTranslation(-(int) focusPosition.X - xOffset, -(int) focusPosition.Y - yOffset, 0)
                     * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
                     * Matrix.CreateTranslation(1920 / 2, 1080 / 2, 0);
             }
         }
         
         // Position of center of camera
-        public Vector2 position;
+        public Vector2 focusPosition;
+        float xOffset;
+        float yOffset;
 
         float zoom;
 
@@ -35,7 +37,7 @@ namespace AlmostSpace.Things
         // Create a new camera centered on the center of the screen with normal zoom
         public Camera()
         {
-            position = new Vector2(0, 0);
+            focusPosition = new Vector2(0, 0);
             zoom = 0.00006f;
         }
 
@@ -47,19 +49,19 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.Up))
             {
-                position.Y -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                yOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keys.Left))
             {
-                position.X -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                xOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keys.Down))
             {
-                position.Y += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                yOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keys.Right))
             {
-                position.X += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                xOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
 
             //Debug.WriteLine(mouseState.ScrollWheelValue);
@@ -75,6 +77,11 @@ namespace AlmostSpace.Things
 
             prevScrollValue = mouseState.ScrollWheelValue;
 
+        }
+
+        public void setFocusPosition(Vector2 position)
+        {
+            this.focusPosition = position;
         }
 
     }

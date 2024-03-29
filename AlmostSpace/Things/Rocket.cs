@@ -49,14 +49,20 @@ namespace AlmostSpace.Things
             this.texture = texture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(8000f, 0f); // 11069 to break things
+            velocity = new Vector2(1000f, 0f); // 11069 to break things
             position = new Vector2(50, 6500000);
             this.planetOrbiting = startingPlanet;
             this.clock = clock;
 
             orbit = new Orbit(apIndicator, peIndicator, planetOrbiting, position, velocity, clock, graphicsDevice);
 
-            orbit.update(new Vector2());
+            orbit.Update(new Vector2());
+        }
+
+        public void setPlanetOrbiting(Planet planet)
+        {
+            orbit.setPlanetOrbiting(planet);
+            planetOrbiting = planet;
         }
 
         // Returns the rockets height above the planets surface in meters
@@ -99,6 +105,16 @@ namespace AlmostSpace.Things
         public String getEngineState()
         {
             return engineOn ? "On" : "Off";
+        }
+
+        public Vector2 getRelativePosition()
+        {
+            return orbit.getPosition();
+        }
+
+        public Vector2 getPosition()
+        {
+            return orbit.getPosition() + planetOrbiting.getPosition();
         }
 
         // Checks for direction and throttle keyboard inputs and updates the
@@ -157,11 +173,12 @@ namespace AlmostSpace.Things
 
             if (engineOn && clock.getTimeFactor() == 1)
             {
-                orbit.update(new Vector2((float)Math.Cos(angle) * engineThrust * throttle / mass, (float)Math.Sin(angle) * engineThrust * throttle / mass));
+                orbit.Update(new Vector2((float)Math.Cos(angle) * engineThrust * throttle / mass, (float)Math.Sin(angle) * engineThrust * throttle / mass));
             }
             else
             {
-                orbit.update();
+                orbit.Update();
+                //orbit.generatePath(1000);
             }
             position = orbit.getPosition();
             velocity = orbit.getVelocity();

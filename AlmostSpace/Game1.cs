@@ -30,6 +30,8 @@ namespace AlmostSpace
 
         Camera camera;
 
+        bool orbitingEarth = false;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -65,7 +67,7 @@ namespace AlmostSpace
             clock = new SimClock();
             earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
             moon = new Planet(earthTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), 1.74E6f, earth, clock, GraphicsDevice);
-            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, earth, clock);
+            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, moon, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -77,6 +79,18 @@ namespace AlmostSpace
             rocket.Update();
             moon.update();
             camera.update(gameTime);
+
+            camera.setFocusPosition(rocket.getPosition());
+
+            if (!orbitingEarth && Orbit.getMagnitude(rocket.getRelativePosition()) > moon.getSOI())
+            {
+                rocket.setPlanetOrbiting(earth);
+                orbitingEarth = true;
+            } else if (orbitingEarth && Orbit.getMagnitude(rocket.getPosition() - moon.getPosition()) < moon.getSOI())
+            {
+                rocket.setPlanetOrbiting(moon);
+                orbitingEarth = false;
+            }
 
             base.Update(gameTime);
         }
