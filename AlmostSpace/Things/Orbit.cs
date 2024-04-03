@@ -52,6 +52,14 @@ namespace AlmostSpace.Things
 
         bool wasPhysics = true;
 
+        bool stationaryObject;
+
+        public Orbit(Vector2 position)
+        {
+            this.objectPosition = position;
+            stationaryObject = true;
+        }
+
         public Orbit(Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
@@ -67,6 +75,8 @@ namespace AlmostSpace.Things
             (0, graphicsDevice.Viewport.Width,     // left, right
             graphicsDevice.Viewport.Height, 0,    // bottom, top
             0, 1);
+
+            stationaryObject = false;
 
         }
 
@@ -89,10 +99,16 @@ namespace AlmostSpace.Things
             graphicsDevice.Viewport.Height, 0,    // bottom, top
             0, 1);
 
+            stationaryObject = false;
+
         }
 
         public void Update(Vector2 objectAcceleration)
         {
+            if (stationaryObject)
+            {
+                return;
+            }
             wasPhysics = true;
 
             float massPlanet = planetOrbiting.getMass();
@@ -123,6 +139,10 @@ namespace AlmostSpace.Things
         // Allows time to be sped up without losing precision
         public void Update()
         {
+            if (stationaryObject)
+            {
+                return;
+            }
             if (wasPhysics)
             {
                 transitionToNoPhysics();
@@ -185,6 +205,10 @@ namespace AlmostSpace.Things
 
         public void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
+            if (stationaryObject)
+            {
+                return;
+            }
             generatePath(1000);
             if (path != null)
             {
@@ -205,7 +229,7 @@ namespace AlmostSpace.Things
         }
 
         // Recalculates the rocket's orbital parameters from its velocity and position vectors
-        public void calculateParameters()
+        void calculateParameters()
         {
             // mu is the standard gravitational parameter of the planet that's being orbited
             mu = universalGravity * planetOrbiting.getMass();
@@ -240,7 +264,7 @@ namespace AlmostSpace.Things
         }
 
         // Generates a list of OrbitSprite objects arranged in the rocket's trajectory
-        public void generatePath(int numPoints)
+        void generatePath(int numPoints)
         {
             path = new VertexPositionColor[e > 1 ? numPoints : numPoints + 1];
 
@@ -280,7 +304,7 @@ namespace AlmostSpace.Things
 
         // This method runs when switching between physics mode and non physics mode
         // It's main purpose is to compute the rocket's mean anomaly at the time of making this switch
-        public void transitionToNoPhysics()
+        void transitionToNoPhysics()
         {
             timeSinceStoppedPhysics = 0;
             float currentTrueAnomaly = planetAngle - argP;
@@ -296,7 +320,7 @@ namespace AlmostSpace.Things
         }
 
         // Gets the radius of the rocket at a given angle
-        public float getRadiusAtAngle(float a, float e, float theta)
+        float getRadiusAtAngle(float a, float e, float theta)
         {
             return a * (1 - e * e) / (1 + e * (float)Math.Cos(theta));
         }
@@ -362,6 +386,11 @@ namespace AlmostSpace.Things
 
         public Vector2 getPosition()
         {
+            return stationaryObject ? objectPosition : objectPosition + planetOrbiting.getPosition();
+        }
+
+        public Vector2 getRelativePosition()
+        {
             return objectPosition;
         }
 
@@ -407,14 +436,34 @@ namespace AlmostSpace.Things
 
         public void setPlanetOrbiting(Planet planet)
         {
+            if (stationaryObject)
+            {
+                return;
+            }
             Debug.WriteLine(objectPosition + " " + planetOrbiting.getPosition());
-            objectPosition = getPosition() + planetOrbiting.getPosition();
+            objectPosition = objectPosition + planetOrbiting.getPosition() - planet.getPosition();
             Debug.WriteLine(objectPosition);
-            objectVelocity = getVelocity() + planetOrbiting.getVelocity() - planet.getVelocity();
+            Planet current = planetOrbiting;
+            while (current != null)
+            {
+                objectVelocity += current.getVelocity();
+                current = current.planetOrbiting;
+            }
+            objectVelocity -= planet.getVelocity();
             planetOrbiting = planet;
             clock.setTimeFactor(1);
             Update(new Vector2());
 
+        }
+
+        public SimClock getClock()
+        {
+            return clock;
+        }
+
+        public Planet getPlanetOrbiting()
+        {
+            return planetOrbiting;
         }
 
         public void oldEquations()

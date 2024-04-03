@@ -17,20 +17,13 @@ using System.Net.Sockets;
 namespace AlmostSpace.Things
 {
     // Represents the rocket that the user controls
-    internal class Rocket
+    internal class Rocket : Orbit
     {
-        // Fields for tracking the rocket's current state
-        // Always updated
-        Vector2 velocity;
-        Vector2 position;
 
         float angle;
         float mass;
 
         Texture2D texture;
-        Orbit orbit;
-
-        Planet planetOrbiting;
 
         bool spaceToggle = true;
         bool engineOn = false;
@@ -40,59 +33,15 @@ namespace AlmostSpace.Things
         float engineThrust = 5000f;
         float throttle = 1;
 
-        SimClock clock;
-
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock)
+        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2(50, 6500000), new Vector2(1000f, 0f), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
             this.angle = 0f;
-            velocity = new Vector2(1000f, 0f); // 11069 to break things
-            position = new Vector2(50, 6500000);
-            this.planetOrbiting = startingPlanet;
-            this.clock = clock;
 
-            orbit = new Orbit(apIndicator, peIndicator, planetOrbiting, position, velocity, clock, graphicsDevice);
-
-            orbit.Update(new Vector2());
-        }
-
-        public void setPlanetOrbiting(Planet planet)
-        {
-            orbit.setPlanetOrbiting(planet);
-            planetOrbiting = planet;
-        }
-
-        // Returns the rockets height above the planets surface in meters
-        public float getHeight()
-        {
-            return orbit.getHeight();
-        }
-
-        // Returns the highest point above the surface tha the rocket will reach in meters
-        public float getApoapsisHeight()
-        {
-            return orbit.getApoapsisHeight();
-        }
-
-        // Returns the lowest point above the surface tha the rocket will reach in meters
-        public float getPeriapsisHeight()
-        {
-            return orbit.getPeriapsisHeight();
-        }
-
-        // Returns the magnitude of the rocket's velocity
-        public float getVelocity()
-        {
-            return orbit.getVelocityMagnitude();
-        }
-
-        // Returns the period of the rockets current orbit in seconds
-        public float getPeriod()
-        {
-            return orbit.getPeriod();
+            base.Update(new Vector2());
         }
 
         // Returns the rocket's current throttle as a percentage
@@ -107,21 +56,11 @@ namespace AlmostSpace.Things
             return engineOn ? "On" : "Off";
         }
 
-        public Vector2 getRelativePosition()
-        {
-            return orbit.getPosition();
-        }
-
-        public Vector2 getPosition()
-        {
-            return orbit.getPosition() + planetOrbiting.getPosition();
-        }
-
         // Checks for direction and throttle keyboard inputs and updates the
         // velocity and position of the rocket based on the forces acting on it.
         // Takes the time since the last frame as a parameter to make sure
         // calculations are based on real time.
-        public void Update()
+        public new void Update()
         {
             var kState = Keyboard.GetState();
 
@@ -136,7 +75,7 @@ namespace AlmostSpace.Things
                 spaceToggle = true;
             }
 
-            if (clock.getTimeStopped())
+            if (getClock().getTimeStopped())
             {
                 return;
             }
@@ -163,34 +102,47 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.A))
             {
-                angle -= 3 * clock.getFrameTime();
+                angle -= 3 * getClock().getFrameTime();
             }
 
             if (kState.IsKeyDown(Keys.D))
             {
-                angle += 3 * clock.getFrameTime();
+                angle += 3 * getClock().getFrameTime();
             }
 
-            if (engineOn && clock.getTimeFactor() == 1)
+            if (engineOn && getClock().getTimeFactor() == 1)
             {
-                orbit.Update(new Vector2((float)Math.Cos(angle) * engineThrust * throttle / mass, (float)Math.Sin(angle) * engineThrust * throttle / mass));
+                base.Update(new Vector2((float)Math.Cos(angle) * engineThrust * throttle / mass, (float)Math.Sin(angle) * engineThrust * throttle / mass));
             }
             else
             {
-                orbit.Update();
+                base.Update();
                 //orbit.generatePath(1000);
             }
-            position = orbit.getPosition();
-            velocity = orbit.getVelocity();
+
+            if (getHeight() > getPlanetOrbiting().getSOI() && getPlanetOrbiting().getSOI() != 0)
+            {
+                setPlanetOrbiting(getPlanetOrbiting().getPlanetOrbiting());
+            }
+
+            foreach (Planet planet in getPlanetOrbiting().getChildren())
+            {
+                if (Orbit.getMagnitude(planet.getPosition() - getPosition()) < planet.getSOI())
+                {
+                    setPlanetOrbiting(planet);
+                    break;
+                }
+            }
+            
         }
 
         // Draws the rocket sprite and orbit approximation to the screen
         // using the given SpriteBatch object
-        public void Draw(SpriteBatch spriteBatch, Matrix transform)
+        public new void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
             // Draw rocket
-            orbit.Draw(spriteBatch, transform);
-            spriteBatch.Draw(texture, Vector2.Transform(position + planetOrbiting.getPosition(), transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            base.Draw(spriteBatch, transform);
+            spriteBatch.Draw(texture, Vector2.Transform(getPosition(), transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
     }

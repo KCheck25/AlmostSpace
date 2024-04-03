@@ -13,7 +13,7 @@ namespace AlmostSpace
     {
         Texture2D rocketTexture;
         Texture2D earthTexture;
-        Texture2D orbitTexture;
+        Texture2D moonTexture;
         Texture2D apIndicator;
         Texture2D peIndicator;
         Texture2D soiTexture;
@@ -26,11 +26,10 @@ namespace AlmostSpace
         private Rocket rocket;
         private Planet earth;
         private Planet moon;
+        private Planet moonMoon;
         private SimClock clock;
 
         Camera camera;
-
-        bool orbitingEarth = false;
 
         public Game1()
         {
@@ -59,15 +58,20 @@ namespace AlmostSpace
             rocketTexture = Content.Load<Texture2D>("Arrow");
             earthTexture = Content.Load<Texture2D>("Earth");
             uiFont = Content.Load<SpriteFont>("OrbitInfo");
-            orbitTexture = Content.Load<Texture2D>("OrbitPiece");
+            moonTexture = Content.Load<Texture2D>("Moon");
             apIndicator = Content.Load<Texture2D>("APindicator");
             peIndicator = Content.Load<Texture2D>("pIndicator");
             soiTexture = Content.Load<Texture2D>("SOI");
 
             clock = new SimClock();
             earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
-            moon = new Planet(earthTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), 1.74E6f, earth, clock, GraphicsDevice);
-            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, moon, clock);
+            moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), new Vector2(0, 1000f), 1.74E6f, earth, clock, GraphicsDevice);
+            moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
+
+
+            earth.addChild(moon);
+            moon.addChild(moonMoon);
+            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, moonMoon, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -77,20 +81,11 @@ namespace AlmostSpace
 
             clock.Update(gameTime);
             rocket.Update();
-            moon.update();
+            moon.Update();
+            moonMoon.Update();
             camera.update(gameTime);
 
             camera.setFocusPosition(rocket.getPosition());
-
-            if (!orbitingEarth && Orbit.getMagnitude(rocket.getRelativePosition()) > moon.getSOI())
-            {
-                rocket.setPlanetOrbiting(earth);
-                orbitingEarth = true;
-            } else if (orbitingEarth && Orbit.getMagnitude(rocket.getPosition() - moon.getPosition()) < moon.getSOI())
-            {
-                rocket.setPlanetOrbiting(moon);
-                orbitingEarth = false;
-            }
 
             base.Update(gameTime);
         }
@@ -104,6 +99,7 @@ namespace AlmostSpace
             _spriteBatch.Begin(transformMatrix: camera.transform);
             earth.Draw(_spriteBatch, camera.transform);
             moon.Draw(_spriteBatch, camera.transform);
+            moonMoon.Draw(_spriteBatch, camera.transform);
             _spriteBatch.End();
 
 
@@ -117,7 +113,7 @@ namespace AlmostSpace
             _spriteBatch.Begin();
             rocket.Draw(_spriteBatch, camera.transform);
             _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocity() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
+            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);
             _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()/ 10) / 100 + "km", new Vector2(25, 130), Color.White);
             _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
