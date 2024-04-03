@@ -40,6 +40,8 @@ namespace AlmostSpace.Things
 
             soi = getSemiMajorAxis() * (float)Math.Pow(mass / orbiting.getMass(), 0.4);
             Debug.WriteLine(soi);
+
+            orbiting.addChild(this);
         }
 
         public void addChild(Planet child)

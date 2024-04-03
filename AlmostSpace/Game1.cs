@@ -68,9 +68,6 @@ namespace AlmostSpace
             moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), new Vector2(0, 1000f), 1.74E6f, earth, clock, GraphicsDevice);
             moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
 
-
-            earth.addChild(moon);
-            moon.addChild(moonMoon);
             rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, moonMoon, clock);
         }
 

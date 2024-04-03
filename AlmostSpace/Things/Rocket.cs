@@ -120,11 +120,13 @@ namespace AlmostSpace.Things
                 //orbit.generatePath(1000);
             }
 
+            // Check if rocket exits current planet / moon's sphere of influence
             if (getHeight() > getPlanetOrbiting().getSOI() && getPlanetOrbiting().getSOI() != 0)
             {
                 setPlanetOrbiting(getPlanetOrbiting().getPlanetOrbiting());
             }
 
+            // Check if rocket enters a sphere of influence within the current sphere of influence
             foreach (Planet planet in getPlanetOrbiting().getChildren())
             {
                 if (Orbit.getMagnitude(planet.getPosition() - getPosition()) < planet.getSOI())

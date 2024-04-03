@@ -396,6 +396,11 @@ namespace AlmostSpace.Things
 
         public Vector2 getVelocity()
         {
+            return stationaryObject ? objectVelocity : objectVelocity + planetOrbiting.getVelocity();
+        }
+
+        public Vector2 getRelativeVelocity()
+        {
             return objectVelocity;
         }
 
@@ -434,6 +439,7 @@ namespace AlmostSpace.Things
             return period;
         }
 
+        // Changes the position and velocity vectors of the orbit to be relative to the given planet
         public void setPlanetOrbiting(Planet planet)
         {
             if (stationaryObject)
@@ -442,14 +448,7 @@ namespace AlmostSpace.Things
             }
             Debug.WriteLine(objectPosition + " " + planetOrbiting.getPosition());
             objectPosition = objectPosition + planetOrbiting.getPosition() - planet.getPosition();
-            Debug.WriteLine(objectPosition);
-            Planet current = planetOrbiting;
-            while (current != null)
-            {
-                objectVelocity += current.getVelocity();
-                current = current.planetOrbiting;
-            }
-            objectVelocity -= planet.getVelocity();
+            objectVelocity = objectVelocity + planetOrbiting.getVelocity() - planet.getVelocity();
             planetOrbiting = planet;
             clock.setTimeFactor(1);
             Update(new Vector2());
