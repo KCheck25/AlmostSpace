@@ -68,7 +68,7 @@ namespace AlmostSpace
 
             clock = new SimClock();
             sun = new Planet(sunTexture, 1.989E30f, new Vector2D(), 6.96E8f);
-            earth = new Planet(earthTexture, soiTexture, 5.97E24f, new Vector2D(1.4995E10, 0), new Vector2D(0, 29784.8), 6378.14E3f, sun, clock, GraphicsDevice);
+            earth = new Planet(earthTexture, soiTexture, 5.97E24f, new Vector2D(1.4995E11, 0), new Vector2D(0, 29784.8), 6378.14E3f, sun, clock, GraphicsDevice);
             //earth = new Planet(earthTexture, 5.97E24f, new Vector2D(0, 0), 6378.14E3f);
             moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2D(384400E3, 0), new Vector2D(0, 1000), 1.74E6f, earth, clock, GraphicsDevice);
             //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);

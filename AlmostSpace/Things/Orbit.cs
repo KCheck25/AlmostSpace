@@ -481,10 +481,15 @@ namespace AlmostSpace.Things
             {
                 return;
             }
-            Debug.WriteLine(objectPosition + " " + planetOrbiting.getPosition());
-            objectPosition = objectPosition + planetOrbiting.getPosition() - planet.getPosition();
-            objectVelocity = objectVelocity + planetOrbiting.getVelocity() - planet.getVelocity();
+            Debug.WriteLine("BEFORE:    Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
+            Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
+            objectPosition = getPosition() - planet.getPosition();
+            objectVelocity = getVelocity() - planet.getVelocity();
             planetOrbiting = planet;
+
+            Debug.WriteLine("AFTER:     Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
+            Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
+
             clock.setTimeFactor(1);
             Update(new Vector2D());
 

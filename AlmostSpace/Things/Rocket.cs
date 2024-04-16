@@ -35,7 +35,7 @@ namespace AlmostSpace.Things
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(10000f, 0f), clock, graphicsDevice)
+        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(10000, 0), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
