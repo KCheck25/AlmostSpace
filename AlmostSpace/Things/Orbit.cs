@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections;
 
 namespace AlmostSpace.Things
 {
@@ -17,35 +18,35 @@ namespace AlmostSpace.Things
 
         SimClock clock;
 
-        Vector2 objectPosition;
-        Vector2 objectVelocity;
+        Vector2D objectPosition;
+        Vector2D objectVelocity;
 
         Planet planetOrbiting;
 
         Texture2D apTexture;
         Texture2D peTexture;
 
-        float radius;           // distance from body (m)
-        float planetAngle;      // angle from body to current position (rad)
-        float mu;               // gravitation parameter for current body
-        float vMagnitude;       // magnitude of object's velocity (m/s)
-        float semiMajorAxis;    // semi major axis of orbit (m)
-        float period;           // period of orbit (s)
-        float aMomentum;        // angular momentum (rad/s^2)
-        float rApoapsis;        // apoapsis radius (m)
-        float rPeriapsis;       // periapsis radius (m)
-        Vector2 eV;             // eccentricity vector
-        float e;                // eccentricity
-        float argP;             // argument of periapsis (rad)
-        float semiMinorAxis;    // semi minor axis (m)
+        double radius;           // distance from body (m)
+        public double planetAngle;      // angle from body to current position (rad)
+        double mu;               // gravitation parameter for current body
+        double vMagnitude;       // magnitude of object's velocity (m/s)
+        double semiMajorAxis;    // semi major axis of orbit (m)
+        double period;           // period of orbit (s)
+        double aMomentum;        // angular momentum (rad/s^2)
+        double rApoapsis;        // apoapsis radius (m)
+        double rPeriapsis;       // periapsis radius (m)
+        Vector2D eV;             // eccentricity vector
+        double e;                // eccentricity
+        public double argP;             // argument of periapsis (rad)
+        double semiMinorAxis;    // semi minor axis (m)
 
-        float m0;
+        double m0;
 
         double timeSinceStoppedPhysics;
 
-        float universalGravity = 6.67E-11f;
+        double universalGravity = 6.67E-11f;
 
-        VertexPositionColor[] path;
+        PositionColorD[] path;
 
         BasicEffect basicEffect;
         GraphicsDevice graphicsDevice;
@@ -54,13 +55,13 @@ namespace AlmostSpace.Things
 
         bool stationaryObject;
 
-        public Orbit(Vector2 position)
+        public Orbit(Vector2D position)
         {
             this.objectPosition = position;
             stationaryObject = true;
         }
 
-        public Orbit(Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
+        public Orbit(Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
             this.objectVelocity = objectVelocity;
@@ -80,7 +81,7 @@ namespace AlmostSpace.Things
 
         }
 
-        public Orbit(Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2 objectPosition, Vector2 objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
+        public Orbit(Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
         {
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
@@ -103,7 +104,7 @@ namespace AlmostSpace.Things
 
         }
 
-        public void Update(Vector2 objectAcceleration)
+        public void Update(Vector2D objectAcceleration)
         {
             if (stationaryObject)
             {
@@ -111,19 +112,19 @@ namespace AlmostSpace.Things
             }
             wasPhysics = true;
 
-            float massPlanet = planetOrbiting.getMass();
-            float xDist = objectPosition.X;
-            float yDist = -objectPosition.Y;
-            float distToCenter = (float)Math.Pow(Math.Pow(xDist, 2) + Math.Pow(yDist, 2), 0.5);
+            double massPlanet = planetOrbiting.getMass();
+            double xDist = objectPosition.X;
+            double yDist = -objectPosition.Y;
+            double distToCenter = Math.Pow(Math.Pow(xDist, 2) + Math.Pow(yDist, 2), 0.5);
             radius = distToCenter;
 
-            Vector2 gravityAcceleration = new Vector2();
+            Vector2D gravityAcceleration = new Vector2D();
 
-            float totalGAccel = (universalGravity * massPlanet) / (distToCenter * distToCenter);
-            planetAngle = (float)Math.Atan2(yDist, xDist);
+            double totalGAccel = (universalGravity * massPlanet) / (distToCenter * distToCenter);
+            planetAngle = Math.Atan2(yDist, xDist);
 
-            float xAccel = -totalGAccel * (float)Math.Cos(planetAngle);
-            float yAccel = totalGAccel * (float)Math.Sin(planetAngle);
+            double xAccel = -totalGAccel * Math.Cos(planetAngle);
+            double yAccel = totalGAccel * Math.Sin(planetAngle);
 
             gravityAcceleration.X = xAccel;
             gravityAcceleration.Y = yAccel;
@@ -149,15 +150,15 @@ namespace AlmostSpace.Things
                 wasPhysics = false;
             }
             timeSinceStoppedPhysics += clock.getFrameTime();
-            float timePassed = (float)timeSinceStoppedPhysics;
+            double timePassed = timeSinceStoppedPhysics;
 
-            float tAnomaly = 0;
+            double tAnomaly = 0;
             if (e <= 1)
             {
                 // Elliptical orbits
-                float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // mean anomaly
+                double mAnomaly = Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // mean anomaly
 
-                float eAnomaly = (float)getEccentricAnomaly(mAnomaly, e, mAnomaly); // eccentric anomaly
+                double eAnomaly = getEccentricAnomaly(mAnomaly, e, mAnomaly); // eccentric anomaly
 
                 // don't update vectors if eccentric anomaly calculation gets stuck for some reason
                 if (eAnomaly == -1)
@@ -166,15 +167,15 @@ namespace AlmostSpace.Things
                     return;
                 }
 
-                tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
+                tAnomaly = 2 * Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
             }
             else
             {
                 // Hyperbolic orbits (https://control.asu.edu/Classes/MAE462/462Lecture05.pdf)
 
-                float mAnomaly = (float)Math.Sqrt(mu / Math.Pow(-semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // hyperbolic mean anomaly
+                double mAnomaly = Math.Sqrt(mu / Math.Pow(-semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // hyperbolic mean anomaly
 
-                float hAnomaly = (float)getEccentricAnomaly(mAnomaly, e, mAnomaly); // hyperbolic anomaly
+                double hAnomaly = getEccentricAnomaly(mAnomaly, e, mAnomaly); // hyperbolic anomaly
 
                 if (hAnomaly == -1)
                 {
@@ -182,25 +183,27 @@ namespace AlmostSpace.Things
                     return;
                 }
 
-                tAnomaly = 2 * (float)Math.Atan(Math.Sqrt((e + 1) / (e - 1)) * Math.Tanh(hAnomaly / 2)); // true anomaly
+                tAnomaly = 2 * Math.Atan(Math.Sqrt((e + 1) / (e - 1)) * Math.Tanh(hAnomaly / 2)); // true anomaly
             }
 
-            float distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * (float)Math.Cos(tAnomaly)); // distance from planet
+            double distAtAnomaly = semiMajorAxis * (1 - e * e) / (1 + e * Math.Cos(tAnomaly)); // distance from planet
 
             radius = distAtAnomaly;
 
-            vMagnitude = (float)Math.Sqrt(mu * (2 / distAtAnomaly - 1 / semiMajorAxis));
+            vMagnitude = Math.Sqrt(mu * (2 / distAtAnomaly - 1 / semiMajorAxis));
 
             // https://physics.stackexchange.com/questions/669946/how-to-calculate-the-direction-of-the-velocity-vector-for-a-body-that-moving-is
-            float vY = -(float)Math.Sin(tAnomaly) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
-            float vX = (float)(e + Math.Cos(tAnomaly)) / (float)Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
+            double vY = -Math.Sin(tAnomaly) / Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
+            double vX = (e + Math.Cos(tAnomaly)) / Math.Sqrt(1 + e * e + 2 * e * Math.Cos(tAnomaly)) * vMagnitude * -Math.Sign(aMomentum);
 
             // https://matthew-brett.github.io/teaching/rotation_2d.html
-            objectVelocity.X = (float)(Math.Cos(-argP - MathHelper.PiOver2) * vX - Math.Sin(-argP - MathHelper.PiOver2) * vY);
-            objectVelocity.Y = (float)(Math.Sin(-argP - MathHelper.PiOver2) * vX + Math.Cos(-argP - MathHelper.PiOver2) * vY);
+            objectVelocity.X = (Math.Cos(-argP - MathHelper.PiOver2) * vX - Math.Sin(-argP - MathHelper.PiOver2) * vY);
+            objectVelocity.Y = (Math.Sin(-argP - MathHelper.PiOver2) * vX + Math.Cos(-argP - MathHelper.PiOver2) * vY);
 
-            objectPosition.X = distAtAnomaly * (float)Math.Cos(tAnomaly + argP);
-            objectPosition.Y = -distAtAnomaly * (float)Math.Sin(tAnomaly + argP);
+            objectPosition.X = distAtAnomaly * Math.Cos(tAnomaly + argP);
+            objectPosition.Y = -distAtAnomaly * Math.Sin(tAnomaly + argP);
+
+            planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
         }
 
         public void Draw(SpriteBatch spriteBatch, Matrix transform)
@@ -212,19 +215,18 @@ namespace AlmostSpace.Things
             generatePath(1000);
             if (path != null)
             {
-                basicEffect.View = transform;
                 basicEffect.CurrentTechnique.Passes[0].Apply();
-                graphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineStrip, path, 0, path.Length - 1);
+                graphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineStrip, PositionColorD.getVertexPositionColorArr(path, transform), 0, path.Length - 1);
             }
             if (apTexture != null && peTexture != null)
             {
-                if (e < 1)
+                if ((planetOrbiting.getSOI() == 0 && e < 1) || (rApoapsis < planetOrbiting.getSOI() && rApoapsis > 0))
                 {
-                    Vector2 apPos = new Vector2((float)Math.Cos(argP + MathHelper.Pi) * rApoapsis, -(float)Math.Sin(argP + MathHelper.Pi) * rApoapsis);
-                    spriteBatch.Draw(apTexture, Vector2.Transform(apPos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(apTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                    Vector2D apPos = new Vector2D(Math.Cos(argP + MathHelper.Pi) * rApoapsis, -Math.Sin(argP + MathHelper.Pi) * rApoapsis);
+                    spriteBatch.Draw(apTexture, Vector2D.Transform(apPos + planetOrbiting.getPosition(), transform).getVector2(), null, Color.White, 0f, new Vector2(apTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
                 }
-                Vector2 pePos = new Vector2((float)Math.Cos(argP) * rPeriapsis, -(float)Math.Sin(argP) * rPeriapsis);
-                spriteBatch.Draw(peTexture, Vector2.Transform(pePos + planetOrbiting.getPosition(), transform), null, Color.White, 0f, new Vector2(peTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                Vector2D pePos = new Vector2D(Math.Cos(argP) * rPeriapsis, -Math.Sin(argP) * rPeriapsis);
+                spriteBatch.Draw(peTexture, Vector2D.Transform(pePos + planetOrbiting.getPosition(), transform).getVector2(), null, Color.White, 0f, new Vector2(peTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
             }
         }
 
@@ -233,32 +235,32 @@ namespace AlmostSpace.Things
         {
             // mu is the standard gravitational parameter of the planet that's being orbited
             mu = universalGravity * planetOrbiting.getMass();
-            float velocityMagnitude = getMagnitude(objectVelocity);
+            double velocityMagnitude = objectVelocity.Length();
             vMagnitude = velocityMagnitude;
 
             // Using vis-viva equation but solving for the semi major axis (a): https://en.wikipedia.org/wiki/Vis-viva_equation
             semiMajorAxis = -1f / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
 
-            period = (float)(2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
+            period = (2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu));
 
 
             // Equations taken from here: https://space.stackexchange.com/questions/2562/2d-orbital-path-from-state-vectors
             aMomentum = objectPosition.X * objectVelocity.Y - objectPosition.Y * objectVelocity.X; // angular momentum
 
             // eccentricity vector
-            float eX = (objectVelocity.Y * aMomentum) / mu - objectPosition.X / radius;
-            float eY = (-objectVelocity.X * aMomentum) / mu - objectPosition.Y / radius;
-            eV = new Vector2(eX, eY);
-            e = getMagnitude(eV);
+            double eX = (objectVelocity.Y * aMomentum) / mu - objectPosition.X / radius;
+            double eY = (-objectVelocity.X * aMomentum) / mu - objectPosition.Y / radius;
+            eV = new Vector2D(eX, eY);
+            e = eV.Length();
 
             // argument of periapsis - angle from planet to periapsis
-            argP = -(float)Math.Atan2(eV.Y, eV.X);
+            argP = -Math.Atan2(eV.Y, eV.X);
 
             // Apoapsis and periapsis radiuses
             rApoapsis = semiMajorAxis * (1 + e);
             rPeriapsis = semiMajorAxis * (1 - e);
 
-            semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1 - e * e);
+            semiMinorAxis = semiMajorAxis * Math.Sqrt(1 - e * e);
 
             //Debug.WriteLine(mu + " " + semiMajorAxis + " " + radius + " " + e + " " + vMagnitude + " " + objectPosition);
         }
@@ -266,38 +268,72 @@ namespace AlmostSpace.Things
         // Generates a list of OrbitSprite objects arranged in the rocket's trajectory
         void generatePath(int numPoints)
         {
-            path = new VertexPositionColor[e > 1 ? numPoints : numPoints + 1];
+            bool connected = true;
 
-            float rMax = planetOrbiting.getSOI();
-            float tMax = MathHelper.Pi;
+            double rMax = planetOrbiting.getSOI();
+            double tMax = MathHelper.Pi;
+            double tMin = -MathHelper.Pi;
 
             // Limit angle for hyperbolic trajectories to a max radius
-            if (e > 1 && rMax > 0)
+            if ((e > 1 || rApoapsis > rMax) && rMax > 0)
             {
-                tMax = (float)Math.Acos((semiMajorAxis * (1 - e * e) - rMax) / (e * rMax));
+                tMax = Math.Acos((semiMajorAxis * (1 - e * e) - rMax) / (e * rMax)) * -Math.Sign(aMomentum);
+                connected = false;
+
+                tMin = planetAngle - argP;
+            } else if (e > 1)
+            {
+                tMax = MathHelper.PiOver2 * -Math.Sign(aMomentum);
+                tMin = planetAngle - argP;
+                connected = false;
             }
 
-            float step = (tMax * 2) / numPoints;
+            path = new PositionColorD[connected ? numPoints + 1 : numPoints];
+
+            if (tMin < -MathHelper.Pi)
+            {
+                tMin += MathHelper.TwoPi;
+            } else if (tMin > MathHelper.Pi)
+            {
+                tMin -= MathHelper.TwoPi;
+            }
+
+            if (tMax < -MathHelper.Pi)
+            {
+                tMax += MathHelper.TwoPi;
+            }
+            else if (tMax > MathHelper.Pi)
+            {
+                tMax -= MathHelper.TwoPi;
+            }
+
+            // Swap min and max if min is greater than max
+            if (tMin > tMax)
+            {
+                tMin += tMax;
+                tMax = tMin - tMax;
+                tMin -= tMax;
+            }
+
+            double step = (tMax - tMin) / numPoints;
 
             int i = 0;
 
-            for (float t = -tMax; t <= tMax; t += step)
+            double currentTheta = tMin;
+            while (i < numPoints)
             {
-                float r = getRadiusAtAngle(semiMajorAxis, e, t);
-                VertexPositionColor point = new VertexPositionColor(new Vector3(r * (float)Math.Cos(t + argP) + planetOrbiting.getPosition().X, -r * (float)Math.Sin(t + argP) + planetOrbiting.getPosition().Y, 0), Color.White);
-                if (r > planetOrbiting.getSOI() && planetOrbiting.getSOI() != 0)
-                {
-                    point.Color = Color.Black;
-                }
+                double r = getRadiusAtAngle(semiMajorAxis, e, currentTheta);
+                PositionColorD point = new PositionColorD(new Vector2D(r * Math.Cos(currentTheta + argP) + planetOrbiting.getPosition().X, -r * Math.Sin(currentTheta + argP) + planetOrbiting.getPosition().Y), Color.White);
                 if (i < numPoints)
                 {
                     path[i] = point;
                 }
-                if (i == 0 && e < 1)
+                if (i == 0 && connected)
                 {
                     path[path.Length - 1] = point;
                 }
                 i++;
+                currentTheta += step;
             }
 
         }
@@ -307,22 +343,22 @@ namespace AlmostSpace.Things
         void transitionToNoPhysics()
         {
             timeSinceStoppedPhysics = 0;
-            float currentTrueAnomaly = planetAngle - argP;
+            double currentTrueAnomaly = planetAngle - argP;
             if (e > 1)
             {
-                float hAnomaly = 2 * (float)Math.Atanh(Math.Tan(currentTrueAnomaly / 2) / Math.Sqrt((e + 1) / (e - 1)));
-                m0 = e * (float)Math.Sinh(hAnomaly) - hAnomaly;
+                double hAnomaly = 2 * Math.Atanh(Math.Tan(currentTrueAnomaly / 2) / Math.Sqrt((e + 1) / (e - 1)));
+                m0 = e * Math.Sinh(hAnomaly) - hAnomaly;
             }
             else
             {
-                m0 = (float)(Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
+                m0 = (Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly), -e - Math.Cos(currentTrueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(currentTrueAnomaly) / (1 + e * Math.Cos(currentTrueAnomaly)));
             }
         }
 
         // Gets the radius of the rocket at a given angle
-        float getRadiusAtAngle(float a, float e, float theta)
+        double getRadiusAtAngle(double a, double e, double theta)
         {
-            return a * (1 - e * e) / (1 + e * (float)Math.Cos(theta));
+            return a * (1 - e * e) / (1 + e * Math.Cos(theta));
         }
 
         // Code adapted from https://www.geeksforgeeks.org/program-for-newton-raphson-method/
@@ -378,63 +414,62 @@ namespace AlmostSpace.Things
             }
         }
 
-        // Returns the magnitude of the given vector
-        public static float getMagnitude(Vector2 v)
-        {
-            return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y);
-        }
-
-        public Vector2 getPosition()
+        public Vector2D getPosition()
         {
             return stationaryObject ? objectPosition : objectPosition + planetOrbiting.getPosition();
         }
 
-        public Vector2 getRelativePosition()
+        public Vector2D getRelativePosition()
         {
             return objectPosition;
         }
 
-        public Vector2 getVelocity()
+        public Vector2D getVelocity()
         {
             return stationaryObject ? objectVelocity : objectVelocity + planetOrbiting.getVelocity();
         }
 
-        public Vector2 getRelativeVelocity()
+        public Vector2D getRelativeVelocity()
         {
             return objectVelocity;
         }
 
-        public float getSemiMajorAxis()
+        public double getSemiMajorAxis()
         {
             return semiMajorAxis;
         }
 
         // Returns the rockets height above the planets surface in meters
-        public float getHeight()
+        public double getHeight()
         {
             return radius - planetOrbiting.getRadius();
         }
 
-        // Returns the highest point above the surface tha the rocket will reach in meters
-        public float getApoapsisHeight()
+        public double getOrbitRadius()
         {
-            return rApoapsis - planetOrbiting.getRadius() > 0 ? rApoapsis - planetOrbiting.getRadius() : float.NaN;
+            return radius;
+        }
+
+        // Returns the highest point above the surface tha the rocket will reach in meters
+        public double getApoapsisHeight()
+        {
+            return rApoapsis - planetOrbiting.getRadius() > 0 ? rApoapsis - planetOrbiting.getRadius() : double.NaN;
         }
 
         // Returns the lowest point above the surface tha the rocket will reach in meters
-        public float getPeriapsisHeight()
+        public double getPeriapsisHeight()
         {
             return rPeriapsis - planetOrbiting.getRadius();
         }
 
         // Returns the magnitude of the rocket's velocity
-        public float getVelocityMagnitude()
+        public double getVelocityMagnitude()
         {
             return vMagnitude;
         }
 
         // Returns the period of the rockets current orbit in seconds
-        public float getPeriod()
+        public double getPeriod()
         {
             return period;
         }
@@ -451,7 +486,7 @@ namespace AlmostSpace.Things
             objectVelocity = objectVelocity + planetOrbiting.getVelocity() - planet.getVelocity();
             planetOrbiting = planet;
             clock.setTimeFactor(1);
-            Update(new Vector2());
+            Update(new Vector2D());
 
         }
 

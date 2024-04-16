@@ -17,14 +17,14 @@ namespace AlmostSpace.Things
         {
             get
             {
-                return Matrix.CreateTranslation(-(int) focusPosition.X - xOffset, -(int) focusPosition.Y - yOffset, 0)
+                return Matrix.CreateTranslation(-(long) focusPosition.X - xOffset, -(long) focusPosition.Y - yOffset, 0)
                     * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
                     * Matrix.CreateTranslation(1920 / 2, 1080 / 2, 0);
             }
         }
         
         // Position of center of camera
-        public Vector2 focusPosition;
+        public Vector2D focusPosition;
         float xOffset;
         float yOffset;
 
@@ -37,7 +37,7 @@ namespace AlmostSpace.Things
         // Create a new camera centered on the center of the screen with normal zoom
         public Camera()
         {
-            focusPosition = new Vector2(0, 0);
+            focusPosition = new Vector2D(0, 0);
             zoom = 0.00006f;
         }
 
@@ -79,7 +79,7 @@ namespace AlmostSpace.Things
 
         }
 
-        public void setFocusPosition(Vector2 position)
+        public void setFocusPosition(Vector2D position)
         {
             this.focusPosition = position;
         }

@@ -35,13 +35,13 @@ namespace AlmostSpace.Things
 
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2(50, 6500000), new Vector2(1000f, 0f), clock, graphicsDevice)
+        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(10000f, 0f), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
             this.angle = 0f;
 
-            base.Update(new Vector2());
+            base.Update(new Vector2D());
         }
 
         // Returns the rocket's current throttle as a percentage
@@ -112,7 +112,7 @@ namespace AlmostSpace.Things
 
             if (engineOn && getClock().getTimeFactor() == 1)
             {
-                base.Update(new Vector2((float)Math.Cos(angle) * engineThrust * throttle / mass, (float)Math.Sin(angle) * engineThrust * throttle / mass));
+                base.Update(new Vector2D(Math.Cos(angle) * engineThrust * throttle / mass, Math.Sin(angle) * engineThrust * throttle / mass));
             }
             else
             {
@@ -121,7 +121,7 @@ namespace AlmostSpace.Things
             }
 
             // Check if rocket exits current planet / moon's sphere of influence
-            if (getHeight() > getPlanetOrbiting().getSOI() && getPlanetOrbiting().getSOI() != 0)
+            if (getOrbitRadius() > getPlanetOrbiting().getSOI() && getPlanetOrbiting().getSOI() != 0)
             {
                 setPlanetOrbiting(getPlanetOrbiting().getPlanetOrbiting());
             }
@@ -129,7 +129,7 @@ namespace AlmostSpace.Things
             // Check if rocket enters a sphere of influence within the current sphere of influence
             foreach (Planet planet in getPlanetOrbiting().getChildren())
             {
-                if (Orbit.getMagnitude(planet.getPosition() - getPosition()) < planet.getSOI())
+                if ((getPosition() - planet.getPosition()).Length() < planet.getSOI())
                 {
                     setPlanetOrbiting(planet);
                     break;
@@ -144,7 +144,7 @@ namespace AlmostSpace.Things
         {
             // Draw rocket
             base.Draw(spriteBatch, transform);
-            spriteBatch.Draw(texture, Vector2.Transform(getPosition(), transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            spriteBatch.Draw(texture, Vector2D.Transform(getPosition(), transform).getVector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
         }
 
     }

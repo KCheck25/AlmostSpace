@@ -13,32 +13,32 @@ namespace AlmostSpace.Things
     internal class Planet : Orbit
     {
         Texture2D texture;
-        float mass;
-        float planetRadius;
-        float soi; // sphere of influence
+        double mass;
+        double planetRadius;
+        double soi; // sphere of influence
 
         Texture2D soiTexture;
 
         List<Planet> children = new List<Planet>();
 
         // Creates a new planet using the given texture, mass, and position
-        public Planet(Texture2D texture, float mass, Vector2 position, float radius) : base(position)
+        public Planet(Texture2D texture, double mass, Vector2D position, double radius) : base(position)
         {
             this.texture = texture;
             this.mass = mass;
             this.planetRadius = radius;
         }
 
-        public Planet(Texture2D texture, Texture2D soiTexture, float mass, Vector2 position, Vector2 velocity, float radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice) : base(orbiting, position, velocity, clock, graphicsDevice)
+        public Planet(Texture2D texture, Texture2D soiTexture, float mass, Vector2D position, Vector2D velocity, double radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice) : base(orbiting, position, velocity, clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
             this.planetRadius = radius;
             this.soiTexture = soiTexture;
 
-            base.Update(new Vector2());
+            base.Update(new Vector2D());
 
-            soi = getSemiMajorAxis() * (float)Math.Pow(mass / orbiting.getMass(), 0.4);
+            soi = getSemiMajorAxis() * Math.Pow(mass / orbiting.getMass(), 0.4);
             Debug.WriteLine(soi);
 
             orbiting.addChild(this);
@@ -55,18 +55,18 @@ namespace AlmostSpace.Things
         }
 
         // Returns the mass of this planet
-        public float getMass()
+        public double getMass()
         {
             return mass;
         }
 
-        public float getSOI()
+        public double getSOI()
         {
             return soi;
         }
 
         // Returns the radius of the planet's surface
-        public float getRadius()
+        public double getRadius()
         {
             return planetRadius;
         }
@@ -79,12 +79,12 @@ namespace AlmostSpace.Things
         // Draws this planet to the screen using the given SpriteBatch object
         public new void Draw(SpriteBatch spriteBatch, Matrix transform)
         {
-            if (getVelocity() != new Vector2())
+            if (!getVelocity().Equals(new Vector2D()))
             {
-                spriteBatch.Draw(soiTexture, getPosition(), null, Color.White, 0f, new Vector2(soiTexture.Width / 2, soiTexture.Height / 2), 2 * soi / soiTexture.Width, SpriteEffects.None, 0f);
+                spriteBatch.Draw(soiTexture, getPosition().getVector2(), null, Color.White, 0f, new Vector2(soiTexture.Width / 2, soiTexture.Height / 2), (float)(2 * soi / soiTexture.Width), SpriteEffects.None, 0f);
             }
             base.Draw(spriteBatch, transform);
-            spriteBatch.Draw(texture, getPosition(), null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), 2 * planetRadius / texture.Width, SpriteEffects.None, 0f);
+            spriteBatch.Draw(texture, getPosition().getVector2(), null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), (float)(2 * planetRadius / texture.Width), SpriteEffects.None, 0f);
             
         }
 

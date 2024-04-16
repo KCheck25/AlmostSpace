@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,7 @@ namespace AlmostSpace
         Texture2D apIndicator;
         Texture2D peIndicator;
         Texture2D soiTexture;
+        Texture2D sunTexture;
 
         private SpriteFont uiFont;
 
@@ -26,7 +28,7 @@ namespace AlmostSpace
         private Rocket rocket;
         private Planet earth;
         private Planet moon;
-        private Planet moonMoon;
+        private Planet sun;
         private SimClock clock;
 
         Camera camera;
@@ -62,13 +64,16 @@ namespace AlmostSpace
             apIndicator = Content.Load<Texture2D>("APindicator");
             peIndicator = Content.Load<Texture2D>("pIndicator");
             soiTexture = Content.Load<Texture2D>("SOI");
+            sunTexture = Content.Load<Texture2D>("Sun");
 
             clock = new SimClock();
-            earth = new Planet(earthTexture, 5.97E24f, new Vector2(0, 0), 6378.14E3f);
-            moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2(384400E3F, 0), new Vector2(0, 1000f), 1.74E6f, earth, clock, GraphicsDevice);
-            moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
+            sun = new Planet(sunTexture, 1.989E30f, new Vector2D(), 6.96E8f);
+            earth = new Planet(earthTexture, soiTexture, 5.97E24f, new Vector2D(1.4995E10, 0), new Vector2D(0, 29784.8), 6378.14E3f, sun, clock, GraphicsDevice);
+            //earth = new Planet(earthTexture, 5.97E24f, new Vector2D(0, 0), 6378.14E3f);
+            moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2D(384400E3, 0), new Vector2D(0, 1000), 1.74E6f, earth, clock, GraphicsDevice);
+            //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
 
-            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, moonMoon, clock);
+            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, earth, clock);
         }
 
         protected override void Update(GameTime gameTime)
@@ -79,7 +84,8 @@ namespace AlmostSpace
             clock.Update(gameTime);
             rocket.Update();
             moon.Update();
-            moonMoon.Update();
+            earth.Update();
+            sun.Update();
             camera.update(gameTime);
 
             camera.setFocusPosition(rocket.getPosition());
@@ -96,7 +102,8 @@ namespace AlmostSpace
             _spriteBatch.Begin(transformMatrix: camera.transform);
             earth.Draw(_spriteBatch, camera.transform);
             moon.Draw(_spriteBatch, camera.transform);
-            moonMoon.Draw(_spriteBatch, camera.transform);
+            //moon.Draw(_spriteBatch, camera.transform);
+            sun.Draw(_spriteBatch, camera.transform);
             _spriteBatch.End();
 
 

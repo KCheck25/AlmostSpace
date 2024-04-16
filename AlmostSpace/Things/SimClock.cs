@@ -66,6 +66,11 @@ namespace AlmostSpace.Things
                 commaPressed = true;
             }
 
+            if (kState.IsKeyDown(Keys.OemQuestion))
+            {
+                timeWarpLevel = 0;
+            }
+
             if (kState.IsKeyUp(Keys.OemPeriod))
             {
                 periodPressed = false;
