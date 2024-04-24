@@ -95,9 +95,9 @@ namespace AlmostSpace.Things
             return timeFactor;
         }
 
-        public void setTimeFactor(float timeFactor)
+        public void setTimeFactor(int timeFactor)
         {
-            this.timeFactor = timeFactor;
+            this.timeWarpLevel = timeFactor;
         }
 
         // gets the total time elapsed in the game world (in seconds)

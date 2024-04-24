@@ -369,7 +369,7 @@ namespace AlmostSpace.Things
 
             double h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
             int i = 0;
-            while (Math.Abs(h) >= 0.00001)
+            while (Math.Abs(h) >= 0.000001)
             {
                 h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
 
@@ -385,7 +385,7 @@ namespace AlmostSpace.Things
                 }
             }
 
-            return Math.Round(x * 100000) / 100000;
+            return Math.Round(x * 1000000) / 1000000;
         }
 
         // Mean and eccentric anomaly function
@@ -483,16 +483,27 @@ namespace AlmostSpace.Things
             }
             Debug.WriteLine("BEFORE:    Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
+            //if (enter)
+            //{
+            //    objectPosition += planetOrbiting.getRelativePosition();
+            //    objectVelocity += planetOrbiting.getRelativeVelocity();
+            //} else
+            //{
+            //    objectPosition -= planetOrbiting.getRelativePosition();
+            //    objectVelocity -= planetOrbiting.getRelativeVelocity();
+            //}
+
             objectPosition = getPosition() - planet.getPosition();
             objectVelocity = getVelocity() - planet.getVelocity();
+
             planetOrbiting = planet;
 
             Debug.WriteLine("AFTER:     Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
 
-            clock.setTimeFactor(1);
+            clock.setTimeFactor(0);
             Update(new Vector2D());
-
+            //double thing = 0;
         }
 
         public SimClock getClock()
