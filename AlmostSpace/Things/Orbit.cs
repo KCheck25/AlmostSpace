@@ -150,46 +150,6 @@ namespace AlmostSpace.Things
                             objectVelocity.X = double.Parse(components[1].Split(",")[0]);
                             objectVelocity.Y = double.Parse(components[1].Split(",")[1]);
                             break;
-                        case "Radius":
-                            radius = double.Parse(components[1]);
-                            break;
-                        case "Planet Angle":
-                            planetAngle = double.Parse(components[1]);
-                            break;
-                        case "Mu":
-                            mu = double.Parse(components[1]);
-                            break;
-                        case "Velocity Magnitude":
-                            vMagnitude = double.Parse(components[1]);
-                            break;
-                        case "Semi-Major Axis":
-                            semiMajorAxis = double.Parse(components[1]);
-                            break;
-                        case "Period":
-                            period = double.Parse(components[1]);
-                            break;
-                        case "Angular Momentum":
-                            aMomentum = double.Parse(components[1]);
-                            break;
-                        case "Apoapsis Radius":
-                            rApoapsis = double.Parse(components[1]);
-                            break;
-                        case "Periapsis Radius":
-                            rPeriapsis = double.Parse(components[1]);
-                            break;
-                        case "Eccentricity Vector":
-                            eV.X = double.Parse(components[1].Split(",")[0]);
-                            eV.Y = double.Parse(components[1].Split(",")[1]);
-                            break;
-                        case "Eccentricity":
-                            e = double.Parse(components[1]);
-                            break;
-                        case "Argument of Periapsis":
-                            argP = double.Parse(components[1]);
-                            break;
-                        case "Semi-Minor Axis":
-                            semiMinorAxis = double.Parse(components[1]);
-                            break;
                         case "Initial Mean Anomaly":
                             m0 = double.Parse(components[1]);
                             break;
@@ -214,6 +174,11 @@ namespace AlmostSpace.Things
                 }
 
             }
+
+            radius = objectPosition.Length();
+            planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
+            calculateParameters();
+
         }
 
         public Orbit(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D apTexture, Texture2D peTexture) : this(data, planets, clock, graphicsDevice)
@@ -349,8 +314,12 @@ namespace AlmostSpace.Things
         }
 
         // Recalculates the rocket's orbital parameters from its velocity and position vectors
-        void calculateParameters()
+        public void calculateParameters()
         {
+            if (stationaryObject)
+            {
+                return;
+            }
             // mu is the standard gravitational parameter of the planet that's being orbited
             mu = universalGravity * planetOrbiting.getMass();
             double velocityMagnitude = objectVelocity.Length();
@@ -667,19 +636,6 @@ namespace AlmostSpace.Things
             }
             output += "Orbiting Planet: " + (planetOrbiting != null ? planetOrbiting.getName() : "none") + "\n";
             output += "Velocity: " + objectVelocity.X + "," + objectVelocity.Y + "\n";
-            output += "Radius: " + radius + "\n";
-            output += "Planet Angle: " + planetAngle + "\n";
-            output += "Mu: " + mu + "\n";
-            output += "Velocity Magnitude: " + vMagnitude + "\n";
-            output += "Semi-Major Axis: " + semiMajorAxis + "\n";
-            output += "Period: " + period + "\n";
-            output += "Angular Momentum: " + aMomentum + "\n";
-            output += "Apoapsis Radius: " + rApoapsis + "\n";
-            output += "Periapsis Radius: " + rPeriapsis + "\n";
-            output += "Eccentricity Vector: " + eV.X + "," + eV.Y + "\n";
-            output += "Eccentricity: " + e + "\n";
-            output += "Argument of Periapsis: " + argP + "\n";
-            output += "Semi-Minor Axis: " + semiMinorAxis + "\n";
             output += "Initial Mean Anomaly: " + m0 + "\n";
             output += "Time Since Physics Last Stopped: " + timeSinceStoppedPhysics + "\n";
             output += "Was Physics: " + wasPhysics + "\n";

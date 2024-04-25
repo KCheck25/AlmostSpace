@@ -97,8 +97,7 @@ namespace AlmostSpace.Things
             String output = base.getSaveData();
             output += "Texture: " + texture.Name + "\n";
             output += "Mass: " + mass + "\n";
-            output += "Planet Radius: " + planetRadius + "\n";
-            output += "SOI Radius: " + soi + "\n\n";
+            output += "Planet Radius: " + planetRadius + "\n\n";
             foreach (Planet planet in children)
             {
                 output += planet.getSaveData();
@@ -124,9 +123,6 @@ namespace AlmostSpace.Things
                         case "Planet Radius":
                             planetRadius = double.Parse(components[1]);
                             break;
-                        case "SOI Radius":
-                            soi = double.Parse(components[1]);
-                            break;
                         case "Orbiting Planet":
                             Debug.Write(components[1]);
                             foreach (Planet planet in planets)
@@ -150,6 +146,10 @@ namespace AlmostSpace.Things
 
                 }
 
+            }
+            if (getPlanetOrbiting() != null)
+            {
+                soi = getSemiMajorAxis() * Math.Pow(mass / getPlanetOrbiting().getMass(), 0.4);
             }
         }
 
