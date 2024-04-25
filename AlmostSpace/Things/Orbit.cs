@@ -26,6 +26,9 @@ namespace AlmostSpace.Things
         Texture2D apTexture;
         Texture2D peTexture;
 
+        String name;
+        String type;
+
         double radius;           // distance from body (m)
         public double planetAngle;      // angle from body to current position (rad)
         double mu;               // gravitation parameter for current body
@@ -55,18 +58,22 @@ namespace AlmostSpace.Things
 
         bool stationaryObject;
 
-        public Orbit(Vector2D position)
+        public Orbit(String name, String type, Vector2D position)
         {
             this.objectPosition = position;
             stationaryObject = true;
+            this.name = name;
+            this.type = type;
         }
 
-        public Orbit(Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
+        public Orbit(String name, String type, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
             this.objectVelocity = objectVelocity;
             this.clock = clock;
             this.graphicsDevice = graphicsDevice;
+            this.name = name;
+            this.type = type;
 
             mu = planetOrbiting.getMass() * universalGravity;
 
@@ -81,7 +88,7 @@ namespace AlmostSpace.Things
 
         }
 
-        public Orbit(Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
+        public Orbit(String name, String type, Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
         {
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
@@ -90,6 +97,8 @@ namespace AlmostSpace.Things
             this.graphicsDevice = graphicsDevice;
             this.apTexture = apTexture;
             this.peTexture = peTexture;
+            this.name = name;
+            this.type = type;
 
             mu = planetOrbiting.getMass() * universalGravity;
 
@@ -102,6 +111,115 @@ namespace AlmostSpace.Things
 
             stationaryObject = false;
 
+        }
+
+        public Orbit(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice)
+        {
+            this.clock = clock;
+            this.graphicsDevice = graphicsDevice;
+
+            basicEffect = new BasicEffect(graphicsDevice);
+            basicEffect.VertexColorEnabled = true;
+            basicEffect.Projection = Matrix.CreateOrthographicOffCenter
+            (0, graphicsDevice.Viewport.Width,     // left, right
+            graphicsDevice.Viewport.Height, 0,    // bottom, top
+            0, 1);
+
+            String[] lines = data.Split("\n");
+            foreach (String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Type":
+                            type = components[1];
+                            break;
+                        case "ID":
+                            name = components[1];
+                            break;
+                        case "Position":
+                            objectPosition.X = double.Parse(components[1].Split(",")[0]);
+                            objectPosition.Y = double.Parse(components[1].Split(",")[1]);
+                            break;
+                        case "Stationary":
+                            stationaryObject = bool.Parse(components[1]);
+                            break;
+                        case "Velocity":
+                            objectVelocity.X = double.Parse(components[1].Split(",")[0]);
+                            objectVelocity.Y = double.Parse(components[1].Split(",")[1]);
+                            break;
+                        case "Radius":
+                            radius = double.Parse(components[1]);
+                            break;
+                        case "Planet Angle":
+                            planetAngle = double.Parse(components[1]);
+                            break;
+                        case "Mu":
+                            mu = double.Parse(components[1]);
+                            break;
+                        case "Velocity Magnitude":
+                            vMagnitude = double.Parse(components[1]);
+                            break;
+                        case "Semi-Major Axis":
+                            semiMajorAxis = double.Parse(components[1]);
+                            break;
+                        case "Period":
+                            period = double.Parse(components[1]);
+                            break;
+                        case "Angular Momentum":
+                            aMomentum = double.Parse(components[1]);
+                            break;
+                        case "Apoapsis Radius":
+                            rApoapsis = double.Parse(components[1]);
+                            break;
+                        case "Periapsis Radius":
+                            rPeriapsis = double.Parse(components[1]);
+                            break;
+                        case "Eccentricity Vector":
+                            eV.X = double.Parse(components[1].Split(",")[0]);
+                            eV.Y = double.Parse(components[1].Split(",")[1]);
+                            break;
+                        case "Eccentricity":
+                            e = double.Parse(components[1]);
+                            break;
+                        case "Argument of Periapsis":
+                            argP = double.Parse(components[1]);
+                            break;
+                        case "Semi-Minor Axis":
+                            semiMinorAxis = double.Parse(components[1]);
+                            break;
+                        case "Initial Mean Anomaly":
+                            m0 = double.Parse(components[1]);
+                            break;
+                        case "Time Since Physics Last Stopped":
+                            timeSinceStoppedPhysics = double.Parse(components[1]);
+                            break;
+                        case "Was Physics":
+                            wasPhysics = bool.Parse(components[1]);
+                            break;
+                        case "Orbiting Planet":
+                            Debug.Write(components[1]);
+                            foreach (Planet planet in planets)
+                            {
+                                if (planet.getName().Equals(components[1]))
+                                {
+                                    planetOrbiting = planet;
+                                }
+                            }
+                            break;
+                    }
+
+                }
+
+            }
+        }
+
+        public Orbit(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D apTexture, Texture2D peTexture) : this(data, planets, clock, graphicsDevice)
+        {
+            this.apTexture = apTexture;
+            this.peTexture = peTexture;
         }
 
         public void Update(Vector2D objectAcceleration)
@@ -532,5 +650,41 @@ namespace AlmostSpace.Things
 
         }
 
+        public String getName()
+        {
+            return name;
+        }
+
+        public String getSaveData()
+        {
+            String output = "Type: " + type + "\n";
+            output += "ID: " + name + "\n";
+            output += "Position: " + objectPosition.X + "," + objectPosition.Y + "\n";
+            output += "Stationary: " + stationaryObject + "\n";
+            if (stationaryObject)
+            {
+                return output;
+            }
+            output += "Orbiting Planet: " + (planetOrbiting != null ? planetOrbiting.getName() : "none") + "\n";
+            output += "Velocity: " + objectVelocity.X + "," + objectVelocity.Y + "\n";
+            output += "Radius: " + radius + "\n";
+            output += "Planet Angle: " + planetAngle + "\n";
+            output += "Mu: " + mu + "\n";
+            output += "Velocity Magnitude: " + vMagnitude + "\n";
+            output += "Semi-Major Axis: " + semiMajorAxis + "\n";
+            output += "Period: " + period + "\n";
+            output += "Angular Momentum: " + aMomentum + "\n";
+            output += "Apoapsis Radius: " + rApoapsis + "\n";
+            output += "Periapsis Radius: " + rPeriapsis + "\n";
+            output += "Eccentricity Vector: " + eV.X + "," + eV.Y + "\n";
+            output += "Eccentricity: " + e + "\n";
+            output += "Argument of Periapsis: " + argP + "\n";
+            output += "Semi-Minor Axis: " + semiMinorAxis + "\n";
+            output += "Initial Mean Anomaly: " + m0 + "\n";
+            output += "Time Since Physics Last Stopped: " + timeSinceStoppedPhysics + "\n";
+            output += "Was Physics: " + wasPhysics + "\n";
+
+            return output;
+        }
     }
 }

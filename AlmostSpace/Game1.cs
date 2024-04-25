@@ -7,31 +7,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AlmostSpace
 {
     public class Game1 : Game
     {
-        Texture2D rocketTexture;
-        Texture2D earthTexture;
-        Texture2D moonTexture;
-        Texture2D apIndicator;
-        Texture2D peIndicator;
-        Texture2D soiTexture;
-        Texture2D sunTexture;
 
         private SpriteFont uiFont;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private Rocket rocket;
-        private Planet earth;
-        private Planet moon;
-        private Planet sun;
-        private SimClock clock;
-
-        Camera camera;
+        Screen currentScreen;
+        Screen[] screens = new Screen[2];
 
         public Game1()
         {
@@ -47,8 +36,6 @@ namespace AlmostSpace
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
 
-            camera = new Camera();
-
             base.Initialize();
         }
 
@@ -57,38 +44,28 @@ namespace AlmostSpace
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            rocketTexture = Content.Load<Texture2D>("Arrow");
-            earthTexture = Content.Load<Texture2D>("Earth");
             uiFont = Content.Load<SpriteFont>("OrbitInfo");
-            moonTexture = Content.Load<Texture2D>("Moon");
-            apIndicator = Content.Load<Texture2D>("APindicator");
-            peIndicator = Content.Load<Texture2D>("pIndicator");
-            soiTexture = Content.Load<Texture2D>("SOI");
-            sunTexture = Content.Load<Texture2D>("Sun");
 
-            clock = new SimClock();
-            sun = new Planet(sunTexture, 1.989E30f, new Vector2D(), 6.96E8f);
-            earth = new Planet(earthTexture, soiTexture, 5.97E24f, new Vector2D(1.4995E11, 0), new Vector2D(0, 29784.8), 6378.14E3f, sun, clock, GraphicsDevice);
-            //earth = new Planet(earthTexture, 5.97E24f, new Vector2D(0, 0), 6378.14E3f);
-            moon = new Planet(moonTexture, soiTexture, 7.35E22f, new Vector2D(384400E3, 0), new Vector2D(0, 1000), 1.74E6f, earth, clock, GraphicsDevice);
-            //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
+            screens[0] = new MenuScreen(Content, uiFont, Exit);
+            screens[1] = new MapView(Content, GraphicsDevice, uiFont);
 
-            rocket = new Rocket(rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, earth, clock);
+            currentScreen = screens[0];
+
+            foreach (Screen screen in screens)
+            {
+                screen.LoadContent();
+            }
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            if (currentScreen.NextScreen() != -1)
+            {
+                currentScreen = screens[currentScreen.NextScreen()];
+                currentScreen.Start();
+            }
 
-            clock.Update(gameTime);
-            rocket.Update();
-            moon.Update();
-            earth.Update();
-            sun.Update();
-            camera.update(gameTime);
-
-            camera.setFocusPosition(rocket.getPosition());
+            currentScreen.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -98,36 +75,7 @@ namespace AlmostSpace
         {
             GraphicsDevice.Clear(Color.Black);
 
-            // Draw earth
-            _spriteBatch.Begin(transformMatrix: camera.transform);
-            earth.Draw(_spriteBatch, camera.transform);
-            moon.Draw(_spriteBatch, camera.transform);
-            //moon.Draw(_spriteBatch, camera.transform);
-            sun.Draw(_spriteBatch, camera.transform);
-            _spriteBatch.End();
-
-
-            // Draw rocket, orbit information, and orbit
-            String time = clock.getDisplayTime();
-            float timeWidth = uiFont.MeasureString(time).X;
-
-            String timeWarp = "Time warp: " + clock.getTimeFactor() + "x";
-            float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
-
-            _spriteBatch.Begin();
-            rocket.Draw(_spriteBatch, camera.transform);
-            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
-            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);
-            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight()/ 10) / 100 + "km", new Vector2(25, 130), Color.White);
-            _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
-            _spriteBatch.DrawString(uiFont, "Throttle: " + rocket.getThrottle() + "%", new Vector2(25, 270), Color.White);
-            _spriteBatch.DrawString(uiFont, time, new Vector2(1895 - timeWidth, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 345), Color.White);
-            _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(1895 - timeWarpWidth, 60), Color.White);
-            _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 235), Color.White);
-
-            _spriteBatch.End();
+            currentScreen.Draw(gameTime, _spriteBatch);
 
             base.Draw(gameTime);
         }

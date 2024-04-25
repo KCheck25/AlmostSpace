@@ -41,6 +41,36 @@ namespace AlmostSpace.Things
             zoom = 0.00006f;
         }
 
+        public Camera(String data)
+        {
+            String[] lines = data.Split("\n");
+            foreach (String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Focus Position":
+                            focusPosition.X = double.Parse(components[1].Split(",")[0]);
+                            focusPosition.Y = double.Parse(components[1].Split(",")[1]);
+                            break;
+                        case "X Offset":
+                            xOffset = float.Parse(components[1]);
+                            break;
+                        case "Y Offset":
+                            yOffset = float.Parse(components[1]);
+                            break;
+                        case "Zoom":
+                            zoom = float.Parse(components[1]);
+                            break;
+                    }
+
+                }
+
+            }
+        }
+
         // Change the camera position / zoom based on user inputs
         public void update(GameTime gameTime)
         {
@@ -82,6 +112,17 @@ namespace AlmostSpace.Things
         public void setFocusPosition(Vector2D position)
         {
             this.focusPosition = position;
+        }
+
+        public String getSaveData()
+        {
+            String output = "Type: " + "Camera" + "\n";
+            output += "Focus Position: " + focusPosition.X + "," + focusPosition.Y + "\n";
+            output += "X Offset: " + xOffset + "\n";
+            output += "Y Offset: " + yOffset + "\n";
+            output += "Zoom: " + zoom + "\n\n";
+
+            return output;
         }
 
     }

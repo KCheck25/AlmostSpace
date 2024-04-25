@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.ComponentModel;
 using System.Transactions;
 using System.Net.Sockets;
+using System.Xml.Linq;
 
 namespace AlmostSpace.Things
 {
@@ -30,8 +31,6 @@ namespace AlmostSpace.Things
 
         bool soiChange = false;
 
-        public float timeFactor;
-
         float engineThrust = 5000f;
         float throttle = 1;
 
@@ -39,7 +38,7 @@ namespace AlmostSpace.Things
         
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(11000, 0), clock, graphicsDevice)
+        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(11000, 0), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
@@ -164,6 +163,67 @@ namespace AlmostSpace.Things
             // Draw rocket
             base.Draw(spriteBatch, transform);
             spriteBatch.Draw(texture, Vector2D.Transform(getPosition(), transform).getVector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+        }
+
+        public new String getSaveData()
+        {
+            String output = base.getSaveData();
+            output += "Mass: " + mass + "\n";
+            output += "Angle: " + angle + "\n";
+            output += "Texture: " + texture + "\n";
+            output += "Engine On: " + engineOn + "\n";
+            output += "Just Changed SOI: " + soiChange + "\n";
+            output += "Engine Thrust: " + engineThrust + "\n";
+            output += "Throttle: " + throttle + "\n";
+            output += "Last Planet: " + (justLeft != null ? justLeft.getName() : "none") + "\n";
+
+            return output;
+        }
+
+        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
+        {
+            this.texture = texture;
+
+            String[] lines = data.Split("\n");
+            foreach (String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Mass":
+                            mass = float.Parse(components[1]);
+                            break;
+                        case "Angle":
+                            angle = float.Parse(components[1]);
+                            break;
+                        case "Engine On":
+                            engineOn = bool.Parse(components[1]);
+                            break;
+                        case "Just Changed SOI":
+                            soiChange = bool.Parse(components[1]);
+                            break;
+                        case "Engine Thrust":
+                            engineThrust = float.Parse(components[1]);
+                            break;
+                        case "Throttle":
+                            throttle = float.Parse(components[1]);
+                            break;
+                        case "Last Planet":
+                            foreach (Planet planet in planets)
+                            {
+                                if (planet.getName().Equals(components[1]))
+                                {
+                                    justLeft = planet;
+                                }
+                            }
+                            break;
+                    }
+
+                }
+
+            }
         }
 
     }

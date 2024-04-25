@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Xml;
+using System.Reflection.Metadata;
 
 namespace AlmostSpace.Things
 {
@@ -22,14 +24,14 @@ namespace AlmostSpace.Things
         List<Planet> children = new List<Planet>();
 
         // Creates a new planet using the given texture, mass, and position
-        public Planet(Texture2D texture, double mass, Vector2D position, double radius) : base(position)
+        public Planet(String name, Texture2D texture, double mass, Vector2D position, double radius) : base(name, "Planet", position)
         {
             this.texture = texture;
             this.mass = mass;
             this.planetRadius = radius;
         }
 
-        public Planet(Texture2D texture, Texture2D soiTexture, float mass, Vector2D position, Vector2D velocity, double radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice) : base(orbiting, position, velocity, clock, graphicsDevice)
+        public Planet(String name, Texture2D texture, Texture2D soiTexture, float mass, Vector2D position, Vector2D velocity, double radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice) : base(name, "Planet", orbiting, position, velocity, clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
@@ -43,6 +45,8 @@ namespace AlmostSpace.Things
 
             orbiting.addChild(this);
         }
+
+        
 
         public void addChild(Planet child)
         {
@@ -86,6 +90,67 @@ namespace AlmostSpace.Things
             base.Draw(spriteBatch, transform);
             spriteBatch.Draw(texture, getPosition().getVector2(), null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), (float)(2 * planetRadius / texture.Width), SpriteEffects.None, 0f);
             
+        }
+
+        public new String getSaveData()
+        {
+            String output = base.getSaveData();
+            output += "Texture: " + texture.Name + "\n";
+            output += "Mass: " + mass + "\n";
+            output += "Planet Radius: " + planetRadius + "\n";
+            output += "SOI Radius: " + soi + "\n\n";
+            foreach (Planet planet in children)
+            {
+                output += planet.getSaveData();
+            }
+            return output;
+        }
+
+        public Planet(String data, List<Planet> planets, SimClock clock, List<Texture2D> textures, Texture2D soiTexture, GraphicsDevice graphicsDevice) : base(data, planets, clock, graphicsDevice)
+        {
+            this.texture = texture;
+            this.soiTexture = soiTexture;
+            String[] lines = data.Split("\n");
+            foreach (String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Mass":
+                            mass = double.Parse(components[1]);
+                            break;
+                        case "Planet Radius":
+                            planetRadius = double.Parse(components[1]);
+                            break;
+                        case "SOI Radius":
+                            soi = double.Parse(components[1]);
+                            break;
+                        case "Orbiting Planet":
+                            Debug.Write(components[1]);
+                            foreach (Planet planet in planets)
+                            {
+                                if (planet.getName().Equals(components[1]))
+                                {
+                                    planet.addChild(this);
+                                }
+                            }
+                            break;
+                        case "Texture":
+                            foreach (Texture2D texture in textures)
+                            {
+                                if (texture.Name.Equals(components[1]))
+                                {
+                                    this.texture = texture;
+                                }
+                            }
+                            break;
+                    }
+
+                }
+
+            }
         }
 
     }

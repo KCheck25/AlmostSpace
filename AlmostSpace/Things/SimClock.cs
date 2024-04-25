@@ -2,9 +2,12 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace AlmostSpace.Things
 {
@@ -29,6 +32,35 @@ namespace AlmostSpace.Things
         // Constructs a new SimClock object
         public SimClock() { 
 
+        }
+
+        public SimClock(String data)
+        {
+            String[] lines = data.Split("\n");
+            foreach(String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Total Time":
+                            totalTimeElapsed = double.Parse(components[1]);
+                            break;
+                        case "Time Warp Level":
+                            timeWarpLevel = int.Parse(components[1]);
+                            break;
+                        case "Time Factor":
+                            timeFactor = float.Parse(components[1]);
+                            break;
+                        case "Time Stopped":
+                            timeStopped = bool.Parse(components[1]);
+                            break;
+                    }
+
+                }
+                
+            }
         }
 
         // Update the current game time and listen for time warp controls
@@ -137,6 +169,17 @@ namespace AlmostSpace.Things
             String hoursString = (hours + "").Length == 1 ? "0" + hours : hours + "";
 
             return "Year " + years + ", Day " + days + ", " + hoursString + ":" + minutesString + ":" + secondsString;
+        }
+
+        public String getSaveData()
+        {
+            String output = "Type: " + "Clock" + "\n";
+            output += "Total Time: " + totalTimeElapsed + "\n";
+            output += "Time Warp Level: " + timeWarpLevel + "\n";
+            output += "Time Factor: " + timeFactor + "\n";
+            output += "Time Stopped: " + timeStopped + "\n\n";
+
+            return output;
         }
     }
 }
