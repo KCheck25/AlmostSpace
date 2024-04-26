@@ -47,6 +47,52 @@ namespace AlmostSpace.Things
             base.Update(new Vector2D());
         }
 
+        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
+        {
+            this.texture = texture;
+
+            String[] lines = data.Split("\n");
+            foreach (String line in lines)
+            {
+                String[] components = line.Split(": ");
+                if (components.Length == 2)
+                {
+                    switch (components[0])
+                    {
+                        case "Mass":
+                            mass = float.Parse(components[1]);
+                            break;
+                        case "Angle":
+                            angle = float.Parse(components[1]);
+                            break;
+                        case "Engine On":
+                            engineOn = bool.Parse(components[1]);
+                            break;
+                        case "Just Changed SOI":
+                            soiChange = bool.Parse(components[1]);
+                            break;
+                        case "Engine Thrust":
+                            engineThrust = float.Parse(components[1]);
+                            break;
+                        case "Throttle":
+                            throttle = float.Parse(components[1]);
+                            break;
+                        case "Last Planet":
+                            foreach (Planet planet in planets)
+                            {
+                                if (planet.getName().Equals(components[1]))
+                                {
+                                    justLeft = planet;
+                                }
+                            }
+                            break;
+                    }
+
+                }
+
+            }
+        }
+
         // Returns the rocket's current throttle as a percentage
         public float getThrottle()
         {
@@ -178,52 +224,6 @@ namespace AlmostSpace.Things
             output += "Last Planet: " + (justLeft != null ? justLeft.getName() : "none") + "\n";
 
             return output;
-        }
-
-        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
-        {
-            this.texture = texture;
-
-            String[] lines = data.Split("\n");
-            foreach (String line in lines)
-            {
-                String[] components = line.Split(": ");
-                if (components.Length == 2)
-                {
-                    switch (components[0])
-                    {
-                        case "Mass":
-                            mass = float.Parse(components[1]);
-                            break;
-                        case "Angle":
-                            angle = float.Parse(components[1]);
-                            break;
-                        case "Engine On":
-                            engineOn = bool.Parse(components[1]);
-                            break;
-                        case "Just Changed SOI":
-                            soiChange = bool.Parse(components[1]);
-                            break;
-                        case "Engine Thrust":
-                            engineThrust = float.Parse(components[1]);
-                            break;
-                        case "Throttle":
-                            throttle = float.Parse(components[1]);
-                            break;
-                        case "Last Planet":
-                            foreach (Planet planet in planets)
-                            {
-                                if (planet.getName().Equals(components[1]))
-                                {
-                                    justLeft = planet;
-                                }
-                            }
-                            break;
-                    }
-
-                }
-
-            }
         }
 
     }
