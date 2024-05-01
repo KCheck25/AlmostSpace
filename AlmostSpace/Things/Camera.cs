@@ -17,7 +17,7 @@ namespace AlmostSpace.Things
         {
             get
             {
-                return Matrix.CreateTranslation(-(long) focusPosition.X - xOffset, -(long) focusPosition.Y - yOffset, 0)
+                return Matrix.CreateTranslation(-(float)focusPosition.X - xOffset, -(float)focusPosition.Y - yOffset, 0)
                     * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
                     * Matrix.CreateTranslation(1920 / 2, 1080 / 2, 0);
             }

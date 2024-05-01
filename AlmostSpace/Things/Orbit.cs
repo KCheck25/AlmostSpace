@@ -57,6 +57,7 @@ namespace AlmostSpace.Things
         bool wasPhysics = true;
 
         bool stationaryObject;
+        bool landed;
 
         public Orbit(String name, String type, Vector2D position)
         {
@@ -212,8 +213,10 @@ namespace AlmostSpace.Things
             gravityAcceleration.X = xAccel;
             gravityAcceleration.Y = yAccel;
 
+            //Debug.WriteLine("Before: " + objectVelocity);
             objectVelocity += (gravityAcceleration + objectAcceleration) * clock.getFrameTime();
             objectPosition += objectVelocity * clock.getFrameTime();
+            //Debug.WriteLine("After: " +objectVelocity);
 
             calculateParameters();
             //generatePath(1000);
@@ -225,6 +228,11 @@ namespace AlmostSpace.Things
         {
             if (stationaryObject)
             {
+                return;
+            }
+            if (landed)
+            {
+                //objectVelocity = new Vector2D();
                 return;
             }
             if (wasPhysics)
@@ -240,6 +248,11 @@ namespace AlmostSpace.Things
             {
                 // Elliptical orbits
                 double mAnomaly = Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * timePassed * -Math.Sign(aMomentum) + m0; // mean anomaly
+
+                //if (type.Equals("Rocket"))
+                //{
+                //    Debug.WriteLine(m0 + " Current: " + mAnomaly);
+                //}
 
                 double eAnomaly = getEccentricAnomaly(mAnomaly, e, mAnomaly); // eccentric anomaly
 
@@ -285,6 +298,11 @@ namespace AlmostSpace.Things
 
             objectPosition.X = distAtAnomaly * Math.Cos(tAnomaly + argP);
             objectPosition.Y = -distAtAnomaly * Math.Sin(tAnomaly + argP);
+
+            //if (type.Equals("Rocket"))
+            //{
+            //    Debug.WriteLine(objectPosition);
+            //}
 
             planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
         }
@@ -456,7 +474,7 @@ namespace AlmostSpace.Things
 
             double h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
             int i = 0;
-            while (Math.Abs(h) >= 0.000001)
+            while (Math.Abs(h) >= 0.00000001)
             {
                 h = func(x, eccentricity, mAnomaly) / derivFunc(x, eccentricity);
 
@@ -472,7 +490,7 @@ namespace AlmostSpace.Things
                 }
             }
 
-            return Math.Round(x * 1000000) / 1000000;
+            return Math.Round(x * 100000000) / 100000000;
         }
 
         // Mean and eccentric anomaly function
@@ -568,6 +586,9 @@ namespace AlmostSpace.Things
             {
                 return;
             }
+
+            //clock.setTimeFactor(0);
+
             Debug.WriteLine("BEFORE:    Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
             //if (enter)
@@ -588,9 +609,15 @@ namespace AlmostSpace.Things
             Debug.WriteLine("AFTER:     Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
 
-            clock.setTimeFactor(0);
-            Update(new Vector2D());
-            //double thing = 0;
+            radius = objectPosition.Length();
+            planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
+            calculateParameters();
+            transitionToNoPhysics();
+        }
+
+        public void breakThings()
+        {
+            planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
         }
 
         public SimClock getClock()
@@ -641,6 +668,17 @@ namespace AlmostSpace.Things
             output += "Was Physics: " + wasPhysics + "\n";
 
             return output;
+        }
+
+        public void setLanded(bool landed)
+        {
+            this.landed = landed;
+            objectVelocity = new Vector2D();
+        }
+
+        public bool getLanded()
+        {
+            return landed;
         }
     }
 }

@@ -1,19 +1,8 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections;
-using Microsoft.Xna.Framework.Input;
-using System.IO;
-using System.Diagnostics;
-using System.Runtime.ExceptionServices;
-using System.ComponentModel;
-using System.Transactions;
-using System.Net.Sockets;
-using System.Xml.Linq;
 
 namespace AlmostSpace.Things
 {
@@ -38,7 +27,7 @@ namespace AlmostSpace.Things
         
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(11000, 0), clock, graphicsDevice)
+        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(50, 6500000), new Vector2D(8000, 0), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
@@ -165,15 +154,19 @@ namespace AlmostSpace.Things
             }
             else
             {
-                base.Update();
+                if (getHeight() >= 0)
+                {
+                    base.Update();
+                }
                 //orbit.generatePath(1000);
             }
 
+            //Debug.WriteLine(getPosition().Y);
+            
             double planetSOI = getPlanetOrbiting().getSOI();
-
             if (soiChange)
             {
-                if (Math.Abs((getPosition() - justLeft.getPosition()).Length() - justLeft.getSOI()) > justLeft.getSOI() * 0.05)
+                if (Math.Abs((getPosition() - justLeft.getPosition()).Length() - justLeft.getSOI()) > justLeft.getSOI() * 0.02)
                 {
                     soiChange = false;
 
@@ -199,16 +192,33 @@ namespace AlmostSpace.Things
                     break;
                 }
             }
+
+            if (getHeight() <= 0 && !getLanded())
+            {
+                setLanded(true);
+            }
+            if (getLanded() && getHeight() > 0)
+            {
+                setLanded(false);
+            }
             
         }
 
         // Draws the rocket sprite and orbit approximation to the screen
         // using the given SpriteBatch object
-        public new void Draw(SpriteBatch spriteBatch, Matrix transform)
+        public new void Draw(SpriteBatch spriteBatch, Matrix transform, bool mapView)
         {
             // Draw rocket
-            base.Draw(spriteBatch, transform);
-            spriteBatch.Draw(texture, Vector2D.Transform(getPosition(), transform).getVector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            if (mapView)
+            {
+                base.Draw(spriteBatch, transform);
+                spriteBatch.Draw(texture, Vector2D.Transform(getPosition(), transform).getVector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            }
+            else
+            {
+                spriteBatch.Draw(texture, new Vector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+            }
+
         }
 
         public new String getSaveData()

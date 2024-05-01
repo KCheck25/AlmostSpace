@@ -169,7 +169,7 @@ namespace AlmostSpace.Things
             float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
 
             _spriteBatch.Begin();
-            rocket.Draw(_spriteBatch, camera.transform);
+            rocket.Draw(_spriteBatch, camera.transform, true);
             _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
             _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);

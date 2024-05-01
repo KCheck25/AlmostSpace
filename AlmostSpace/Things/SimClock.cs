@@ -14,7 +14,7 @@ namespace AlmostSpace.Things
     internal class SimClock
     {
         // possible time factors
-        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000, 10000, 100000 };
+        float[] timeWarpLevels = { 1, 5, 10, 25, 50, 100, 500, 1000, 10000, 100000, 1000000 };
         int timeWarpLevel = 0;
 
         float timeFactor;
