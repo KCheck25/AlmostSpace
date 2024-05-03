@@ -114,6 +114,17 @@ namespace AlmostSpace.Things
             this.focusPosition = position;
         }
 
+        public void clearOffsets()
+        {
+            xOffset = 0; 
+            yOffset = 0;
+        }
+
+        public void setRotation()
+        {
+
+        }
+
         public String getSaveData()
         {
             String output = "Type: " + "Camera" + "\n";

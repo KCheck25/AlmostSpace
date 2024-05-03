@@ -28,13 +28,17 @@ namespace AlmostSpace.Things
                 current.Update();
                 current = current.getPlanetOrbiting();
             }
+            foreach (Planet planet in rocket.getPlanetOrbiting().getChildren())
+            {
+                planet.Update();
+            }
 
             rocket.Update();
         }
 
         public void Draw()
         {
-            
+            //rocket.Draw();
         }
     }
 }

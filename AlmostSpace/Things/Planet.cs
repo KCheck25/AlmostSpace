@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Xml;
 using System.Reflection.Metadata;
+using Microsoft.Xna.Framework.Input;
 
 namespace AlmostSpace.Things
 {
@@ -75,21 +76,38 @@ namespace AlmostSpace.Things
             return planetRadius;
         }
 
-        public new void Update()
+        public bool clicked(Matrix transform, Vector2D origin)
         {
-            base.Update();
+            var mState = Mouse.GetState();
+            if (mState.LeftButton == ButtonState.Pressed)
+            {
+                Vector2 mousePos = new Vector2(mState.Position.X, mState.Position.Y);
+                Vector2 onScreenPos = (getPosition() - origin).Transform(transform).getVector2();
+                Vector2 atRadiusPos = (getPosition() + new Vector2D(planetRadius, 0) - origin).Transform(transform).getVector2();
+                float clickRadius = (atRadiusPos - onScreenPos).Length();
+                if ((mousePos - onScreenPos).Length() < clickRadius)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Draws this planet to the screen using the given SpriteBatch object
-        public new void Draw(SpriteBatch spriteBatch, Matrix transform)
+        public new void Draw(SpriteBatch spriteBatch, Matrix transform, Vector2D origin)
         {
             if (!getVelocity().Equals(new Vector2D()))
             {
-                spriteBatch.Draw(soiTexture, getPosition().getVector2(), null, Color.White, 0f, new Vector2(soiTexture.Width / 2, soiTexture.Height / 2), (float)(2 * soi / soiTexture.Width), SpriteEffects.None, 0f);
+                spriteBatch.Draw(soiTexture, (getPosition() - origin).getVector2(), null, Color.White, 0f, new Vector2(soiTexture.Width / 2, soiTexture.Height / 2), (float)(2 * soi / soiTexture.Width), SpriteEffects.None, 0f);
             }
-            base.Draw(spriteBatch, transform);
-            spriteBatch.Draw(texture, getPosition().getVector2(), null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), (float)(2 * planetRadius / texture.Width), SpriteEffects.None, 0f);
-            
+            base.Draw(spriteBatch, transform, origin);
+            spriteBatch.Draw(texture, (getPosition() - origin).getVector2(), null, Color.White, 0f, new Vector2(texture.Width / 2, texture.Height / 2), (float)(2 * planetRadius / texture.Width), SpriteEffects.None, 0f);
+        }
+
+        // Draws this planet to the screen using the given SpriteBatch object
+        public void DrawSurface(SpriteBatch spriteBatch, Matrix transform, Vector2D origin)
+        {
+            spriteBatch.Draw(texture, new Vector2(0, -(float)(getPosition() - origin).Transform(transform).Length()), null, Color.White, 0f, new Vector2(texture.Width / 2, 0), Vector2.One, SpriteEffects.None, 0f);
         }
 
         public new String getSaveData()

@@ -170,6 +170,9 @@ namespace AlmostSpace.Things
                                 }
                             }
                             break;
+                        case "Landed":
+                            landed = bool.Parse(components[1]);
+                            break;
                     }
 
                 }
@@ -307,13 +310,13 @@ namespace AlmostSpace.Things
             planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
         }
 
-        public void Draw(SpriteBatch spriteBatch, Matrix transform)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform, Vector2D origin)
         {
-            if (stationaryObject)
+            if (stationaryObject || landed)
             {
                 return;
             }
-            generatePath(1000);
+            generatePath(1000, origin);
             if (path != null)
             {
                 basicEffect.CurrentTechnique.Passes[0].Apply();
@@ -324,10 +327,14 @@ namespace AlmostSpace.Things
                 if ((planetOrbiting.getSOI() == 0 && e < 1) || (rApoapsis < planetOrbiting.getSOI() && rApoapsis > 0))
                 {
                     Vector2D apPos = new Vector2D(Math.Cos(argP + MathHelper.Pi) * rApoapsis, -Math.Sin(argP + MathHelper.Pi) * rApoapsis);
-                    spriteBatch.Draw(apTexture, Vector2D.Transform(apPos + planetOrbiting.getPosition(), transform).getVector2(), null, Color.White, 0f, new Vector2(apTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                    spriteBatch.Draw(apTexture, Vector2D.Transform(apPos + planetOrbiting.getPosition() - origin, transform).getVector2(), null, Color.White, 0f, new Vector2(apTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
                 }
-                Vector2D pePos = new Vector2D(Math.Cos(argP) * rPeriapsis, -Math.Sin(argP) * rPeriapsis);
-                spriteBatch.Draw(peTexture, Vector2D.Transform(pePos + planetOrbiting.getPosition(), transform).getVector2(), null, Color.White, 0f, new Vector2(peTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+
+                if (getPeriapsisHeight() > 0)
+                {
+                    Vector2D pePos = new Vector2D(Math.Cos(argP) * rPeriapsis, -Math.Sin(argP) * rPeriapsis);
+                    spriteBatch.Draw(peTexture, Vector2D.Transform(pePos + planetOrbiting.getPosition() - origin, transform).getVector2(), null, Color.White, 0f, new Vector2(peTexture.Width / 2, 0), 0.5f, SpriteEffects.None, 0f);
+                }
             }
         }
 
@@ -371,7 +378,7 @@ namespace AlmostSpace.Things
         }
 
         // Generates a list of OrbitSprite objects arranged in the rocket's trajectory
-        void generatePath(int numPoints)
+        void generatePath(int numPoints, Vector2D origin)
         {
             bool connected = true;
 
@@ -391,26 +398,32 @@ namespace AlmostSpace.Things
                 tMax = MathHelper.PiOver2 * -Math.Sign(aMomentum);
                 tMin = planetAngle - argP;
                 connected = false;
+            } else if (getPeriapsisHeight() < 0)
+            {
+                tMin = Math.Acos((semiMajorAxis * (1 - e * e) - planetOrbiting.getRadius()) / (e * planetOrbiting.getRadius()));
+                tMax = -tMin + MathHelper.TwoPi;
+                Debug.WriteLine("tMin: " + tMin + " tMax: " + tMax);
+                connected = false;
             }
 
             path = new PositionColorD[connected ? numPoints + 1 : numPoints];
 
-            if (tMin < -MathHelper.Pi)
-            {
-                tMin += MathHelper.TwoPi;
-            } else if (tMin > MathHelper.Pi)
-            {
-                tMin -= MathHelper.TwoPi;
-            }
+            //if (tMin < -MathHelper.Pi)
+            //{
+            //    tMin += MathHelper.TwoPi;
+            //} else if (tMin > MathHelper.Pi)
+            //{
+            //    tMin -= MathHelper.TwoPi;
+            //}
 
-            if (tMax < -MathHelper.Pi)
-            {
-                tMax += MathHelper.TwoPi;
-            }
-            else if (tMax > MathHelper.Pi)
-            {
-                tMax -= MathHelper.TwoPi;
-            }
+            //if (tMax < -MathHelper.Pi)
+            //{
+            //    tMax += MathHelper.TwoPi;
+            //}
+            //else if (tMax > MathHelper.Pi)
+            //{
+            //    tMax -= MathHelper.TwoPi;
+            //}
 
             // Swap min and max if min is greater than max
             if (tMin > tMax)
@@ -428,7 +441,7 @@ namespace AlmostSpace.Things
             while (i < numPoints)
             {
                 double r = getRadiusAtAngle(semiMajorAxis, e, currentTheta);
-                PositionColorD point = new PositionColorD(new Vector2D(r * Math.Cos(currentTheta + argP) + planetOrbiting.getPosition().X, -r * Math.Sin(currentTheta + argP) + planetOrbiting.getPosition().Y), Color.White);
+                PositionColorD point = new PositionColorD(new Vector2D(r * Math.Cos(currentTheta + argP) + planetOrbiting.getPosition().X, -r * Math.Sin(currentTheta + argP) + planetOrbiting.getPosition().Y) - origin, Color.White);
                 if (i < numPoints)
                 {
                     path[i] = point;
@@ -666,6 +679,7 @@ namespace AlmostSpace.Things
             output += "Initial Mean Anomaly: " + m0 + "\n";
             output += "Time Since Physics Last Stopped: " + timeSinceStoppedPhysics + "\n";
             output += "Was Physics: " + wasPhysics + "\n";
+            output += "Landed: " + landed + "\n";
 
             return output;
         }

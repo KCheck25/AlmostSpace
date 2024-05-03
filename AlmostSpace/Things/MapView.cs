@@ -33,6 +33,8 @@ namespace AlmostSpace.Things
 
         SpriteFont uiFont;
 
+        Orbit objectFocused;
+
         int next = -1;
 
         public static bool startNewGame;
@@ -72,6 +74,7 @@ namespace AlmostSpace.Things
             //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
 
             rocket = new Rocket("Zoomy", rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, planets[1], clock);
+            objectFocused = rocket;
         }
 
         public void loadGame()
@@ -124,6 +127,7 @@ namespace AlmostSpace.Things
                 if (block.Contains("Type: Rocket"))
                 {
                     rocket = new Rocket(block, planets, clock, GraphicsDevice, rocketTexture, apIndicator, peIndicator);
+                    objectFocused = rocket;
                 }
             }
 
@@ -136,27 +140,41 @@ namespace AlmostSpace.Things
                 next = 0;
                 Save();
             }
-
             clock.Update(gameTime);
             rocket.Update();
+
+            bool mouseDown = Mouse.GetState().LeftButton == ButtonState.Pressed;
+
             foreach (Planet planet in planets)
             {
                 planet.Update();
+                if (mouseDown && planet.clicked(camera.transform, objectFocused.getPosition()))
+                {
+                    objectFocused = planet;
+                    camera.clearOffsets();
+                }
             }
-            camera.update(gameTime);
 
-            camera.setFocusPosition(rocket.getPosition());
+            if (mouseDown && rocket.clicked(camera.transform, objectFocused.getPosition()))
+            {
+                objectFocused = rocket;
+                camera.clearOffsets();
+            }
+
+            camera.update(gameTime);
+            //camera.setFocusPosition(rocket.getPosition());
         }
 
         public void Draw(GameTime gameTime, SpriteBatch _spriteBatch)
         {
+            Vector2D centerPosition = objectFocused.getPosition();
             GraphicsDevice.Clear(Color.Black);
 
             // Draw earth
-            _spriteBatch.Begin(transformMatrix: camera.transform);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.transform);
             foreach (Planet planet in planets)
             {
-                planet.Draw(_spriteBatch, camera.transform);
+                planet.Draw(_spriteBatch, camera.transform, centerPosition);
             }
             _spriteBatch.End();
 
@@ -169,7 +187,7 @@ namespace AlmostSpace.Things
             float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
 
             _spriteBatch.Begin();
-            rocket.Draw(_spriteBatch, camera.transform, true);
+            rocket.Draw(_spriteBatch, camera.transform, centerPosition, true);
             _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
             _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);

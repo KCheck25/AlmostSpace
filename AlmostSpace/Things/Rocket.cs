@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace AlmostSpace.Things
 {
@@ -118,9 +119,9 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            if (kState.IsKeyDown(Keys.LeftShift) && throttle < 1)
+            if (kState.IsKeyDown(Keys.LeftShift) && throttle < 10000)
             {
-                throttle = throttle > 0.99f ? 1 : throttle + 0.01f;
+                throttle = throttle + 0.1f/*throttle > 0.99f ? 1 : throttle + 0.01f*/;
             }
 
             if (kState.IsKeyDown(Keys.LeftControl) && throttle > 0)
@@ -206,19 +207,35 @@ namespace AlmostSpace.Things
 
         // Draws the rocket sprite and orbit approximation to the screen
         // using the given SpriteBatch object
-        public new void Draw(SpriteBatch spriteBatch, Matrix transform, bool mapView)
+        public void Draw(SpriteBatch spriteBatch, Matrix transform, Vector2D origin, bool mapView)
         {
             // Draw rocket
-            if (mapView)
+            if (mapView || true)
             {
-                base.Draw(spriteBatch, transform);
-                spriteBatch.Draw(texture, Vector2D.Transform(getPosition(), transform).getVector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+                base.Draw(spriteBatch, transform, origin);
+                spriteBatch.Draw(texture, Vector2.Transform((getPosition() - origin).getVector2(), transform), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
             }
             else
             {
-                spriteBatch.Draw(texture, new Vector2(), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+                spriteBatch.Draw(texture, new Vector2(1920 / 2, 1080 / 2), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
             }
 
+        }
+
+        public bool clicked(Matrix transform, Vector2D origin)
+        {
+            var mState = Mouse.GetState();
+            if (mState.LeftButton == ButtonState.Pressed)
+            {
+                Vector2 mousePos = new Vector2(mState.Position.X, mState.Position.Y);
+                Vector2 onScreenPos = (getPosition() - origin).Transform(transform).getVector2();
+                float clickRadius = 10;
+                if ((mousePos - onScreenPos).Length() < clickRadius)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public new String getSaveData()

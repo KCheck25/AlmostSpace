@@ -61,7 +61,7 @@ namespace AlmostSpace.Things
 
         public void Draw(GameTime gameTime, SpriteBatch _spriteBatch)
         {
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             // Picture from https://opengameart.org/content/pixel-space
             _spriteBatch.Draw(backgroundImage, new Vector2(), null, Color.White, 0f, new Vector2(), Vector2.One, SpriteEffects.None, 0f);
             startNewButton.Draw(_spriteBatch);
