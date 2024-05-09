@@ -121,7 +121,7 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keys.LeftShift) && throttle < 10000)
             {
-                throttle = throttle + 0.1f/*throttle > 0.99f ? 1 : throttle + 0.01f*/;
+                throttle = throttle + 0.01f/*throttle > 0.99f ? 1 : throttle + 0.01f*/;
             }
 
             if (kState.IsKeyDown(Keys.LeftControl) && throttle > 0)

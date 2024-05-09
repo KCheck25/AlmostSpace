@@ -209,8 +209,8 @@ namespace AlmostSpace.Things
             {
                 writetext.WriteLine(toSave);
             }
-            Debug.WriteLine(planets[0].getSaveData());
-            Debug.WriteLine(rocket.getSaveData());
+            //Debug.WriteLine(planets[0].getSaveData());
+            //Debug.WriteLine(rocket.getSaveData());
         }
 
         public int NextScreen()
