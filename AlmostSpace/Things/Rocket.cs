@@ -253,5 +253,10 @@ namespace AlmostSpace.Things
             return output;
         }
 
+        public float getAngle()
+        {
+            return angle;
+        }
+
     }
 }

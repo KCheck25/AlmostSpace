@@ -37,6 +37,90 @@
 /processorParam:TextureFormat=Color
 /build:../../Raw Pictures/menu_background.png;menu_background.png
 
+#begin ../../Raw Pictures/NavBall.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/NavBall.png;NavBall.png
+
+#begin ../../Raw Pictures/NavBallCenter.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/NavBallCenter.png;NavBallCenter.png
+
+#begin ../../Raw Pictures/NavBallFrame.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/NavBallFrame.png;NavBallTextures/NavBallFrame.png
+
+#begin ../../Raw Pictures/ProgradeSymbol.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/ProgradeSymbol.png;NavBallTextures/ProgradeSymbol.png
+
+#begin ../../Raw Pictures/RadialInSymbol.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/RadialInSymbol.png;NavBallTextures/RadialInSymbol.png
+
+#begin ../../Raw Pictures/RadialOutSymbol.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/RadialOutSymbol.png;NavBallTextures/RadialOutSymbol.png
+
+#begin ../../Raw Pictures/RetrogradeSymbol.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/RetrogradeSymbol.png;NavBallTextures/RetrogradeSymbol.png
+
 #begin ../../Raw Pictures/Sun.png
 /importer:TextureImporter
 /processor:TextureProcessor

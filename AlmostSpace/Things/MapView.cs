@@ -21,6 +21,15 @@ namespace AlmostSpace.Things
         Texture2D peIndicator;
         Texture2D soiTexture;
 
+        Texture2D navBallTexture;
+        Texture2D navBallFrameTexture;
+        Texture2D progradeTexture;
+        Texture2D retrogradeTexture;
+        Texture2D radialInTexture;
+        Texture2D radialOutTexture;
+
+        NavBallElement navBall;
+
         private Rocket rocket;
         private List<Planet> planets;
         private List<Texture2D> planetTextures;
@@ -56,7 +65,14 @@ namespace AlmostSpace.Things
             apIndicator = Content.Load<Texture2D>("APindicator");
             peIndicator = Content.Load<Texture2D>("pIndicator");
             soiTexture = Content.Load<Texture2D>("SOI");
+            navBallTexture = Content.Load<Texture2D>("NavBallCenter");
             planetTextures.Add(Content.Load<Texture2D>("Sun"));
+
+            navBallFrameTexture = Content.Load<Texture2D>("NavBallTextures\\NavBallFrame");
+            progradeTexture = Content.Load<Texture2D>("NavBallTextures\\ProgradeSymbol");
+            retrogradeTexture = Content.Load<Texture2D>("NavBallTextures\\RetrogradeSymbol");
+            radialInTexture = Content.Load<Texture2D>("NavBallTextures\\RadialInSymbol");
+            radialOutTexture = Content.Load<Texture2D>("NavBallTextures\\RadialOutSymbol");
         }
 
         public void newGame()
@@ -75,6 +91,8 @@ namespace AlmostSpace.Things
 
             rocket = new Rocket("Zoomy", rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, planets[1], clock);
             objectFocused = rocket;
+
+            navBall = new NavBallElement(new Vector2(1500, 800), 150, navBallTexture, navBallFrameTexture, progradeTexture, retrogradeTexture, radialInTexture, radialOutTexture);
         }
 
         public void loadGame()
@@ -99,7 +117,7 @@ namespace AlmostSpace.Things
                         data.Add(block);
                     }
                 }
-                
+
             }
 
             foreach (String block in data)
@@ -131,6 +149,7 @@ namespace AlmostSpace.Things
                 }
             }
 
+            navBall = new NavBallElement(new Vector2(1700, 875), 150, navBallTexture, navBallFrameTexture, progradeTexture, retrogradeTexture, radialInTexture, radialOutTexture);
         }
 
         public void Update(GameTime gameTime)
@@ -162,6 +181,7 @@ namespace AlmostSpace.Things
             }
 
             camera.update(gameTime);
+            navBall.Update(rocket);
             //camera.setFocusPosition(rocket.getPosition());
         }
 
@@ -188,6 +208,7 @@ namespace AlmostSpace.Things
 
             _spriteBatch.Begin();
             rocket.Draw(_spriteBatch, camera.transform, centerPosition, true);
+            navBall.Draw(_spriteBatch);
             _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
             _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);

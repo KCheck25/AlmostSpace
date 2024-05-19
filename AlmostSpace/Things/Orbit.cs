@@ -208,8 +208,8 @@ namespace AlmostSpace.Things
             objectPosition = getPosition() - planet.getPosition();
             objectVelocity = getVelocity() - planet.getVelocity();
 
-            objectPosition = new Vector2D(148054327227.83652, 23494216235.473633);
-            objectVelocity = new Vector2D(-4846.474948306446, 28740.23504994603);
+            //objectPosition = new Vector2D(148054327227.83652, 23494216235.473633);
+            //objectVelocity = new Vector2D(-4846.474948306446, 28740.23504994603);
 
             planetOrbiting = planet;
 
@@ -293,6 +293,11 @@ namespace AlmostSpace.Things
         public double getPeriod()
         {
             return period;
+        }
+
+        public int getDirection()
+        {
+            return Math.Sign(aMomentum);
         }
 
         public SimClock getClock()
@@ -441,7 +446,7 @@ namespace AlmostSpace.Things
             }
             if (apTexture != null && peTexture != null)
             {
-                bool escapeTrajectory = (e > 1) ? true : rApoapsis > planetOrbiting.getSOI();
+                bool escapeTrajectory = (e > 1) || (rApoapsis > planetOrbiting.getSOI() && planetOrbiting.getSOI() != 0);
                 // Only draw apoapsis if the rocket is not on an escape trajectory
                 if (!escapeTrajectory)
                 {
@@ -494,19 +499,6 @@ namespace AlmostSpace.Things
 
             semiMinorAxis = semiMajorAxis * Math.Sqrt(1 - e * e);
 
-            Debug.WriteLine("Name: " + name);
-            Debug.WriteLine("mu: " + mu);
-            Debug.WriteLine("vMagnitude: " + vMagnitude); 
-            Debug.WriteLine("semiMajorAxis: " + semiMajorAxis); 
-            Debug.WriteLine("period: " + period);
-            Debug.WriteLine("aMomentum: " + aMomentum);
-            Debug.WriteLine("eV: " + eV);
-            Debug.WriteLine("e: " + e);
-            Debug.WriteLine("argP: " + argP);
-            Debug.WriteLine("rApoapsis: " + rApoapsis);
-            Debug.WriteLine("rPeriapsis: " + rPeriapsis); 
-            Debug.WriteLine("semiMinorAxis: " + semiMinorAxis);
-
             //Debug.WriteLine(mu + " " + semiMajorAxis + " " + radius + " " + e + " " + vMagnitude + " " + objectPosition);
         }
 
@@ -519,7 +511,7 @@ namespace AlmostSpace.Things
             double startAngle = -MathHelper.Pi;
 
             bool hyperbolic = e > 1;
-            bool escapeTrajectory = hyperbolic ? true : rApoapsis > rMax;
+            bool escapeTrajectory = hyperbolic || (rApoapsis > rMax && rMax != 0);
             if (rMax <= 0)
             {
                 escapeTrajectory = false;
