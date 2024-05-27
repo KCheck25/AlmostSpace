@@ -27,6 +27,28 @@ namespace AlmostSpace
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            Window.AllowUserResizing = true;
+            Window.ClientSizeChanged += OnResize;
+        }
+
+        public void OnResize(Object sender, EventArgs e)
+        {
+            // Additional code to execute when the user drags the window
+            // or in the case you programmatically change the screen or windows client screen size.
+            // code that might directly change the backbuffer width height calling apply changes.
+            // or passing changes that must occur in other classes or even calling there OnResize methods
+            // though those methods can simply be added to the Windows event caller
+            _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+            _graphics.ApplyChanges();
+
+            Camera.ScreenWidth = _graphics.PreferredBackBufferWidth;
+            Camera.ScreenHeight = _graphics.PreferredBackBufferHeight;
+
+            Debug.WriteLine("RESIZED!!!");
+
+            currentScreen.Resize();
+
         }
 
         protected override void Initialize()
@@ -35,6 +57,9 @@ namespace AlmostSpace
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
+
+            Camera.ScreenWidth = _graphics.PreferredBackBufferWidth;
+            Camera.ScreenHeight = _graphics.PreferredBackBufferHeight;
 
             base.Initialize();
         }
@@ -59,6 +84,7 @@ namespace AlmostSpace
 
         protected override void Update(GameTime gameTime)
         {
+            //Debug.WriteLine(GlobalConstants.ScreenWidth);
             if (currentScreen.NextScreen() != -1)
             {
                 currentScreen = screens[currentScreen.NextScreen()];

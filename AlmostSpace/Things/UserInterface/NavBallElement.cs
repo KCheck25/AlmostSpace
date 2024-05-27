@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Things.UserInterface
 {
     internal class NavBallElement
     {
@@ -25,7 +25,8 @@ namespace AlmostSpace.Things
         float radius;
         bool swapRiRo;
 
-        public NavBallElement(Vector2 position, float radius, Texture2D texture, Texture2D frame, Texture2D prograde, Texture2D retrograde, Texture2D radialIn, Texture2D radialOut) { 
+        public NavBallElement(Vector2 position, float radius, Texture2D texture, Texture2D frame, Texture2D prograde, Texture2D retrograde, Texture2D radialIn, Texture2D radialOut)
+        {
             this.texture = texture;
             this.frame = frame;
             this.prograde = prograde;
@@ -46,6 +47,7 @@ namespace AlmostSpace.Things
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            position = new Vector2(Camera.ScreenWidth - 200, Camera.ScreenHeight - 200);
             spriteBatch.Draw(texture, position, null, Color.White, angle, new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0f);
             spriteBatch.Draw(prograde, position + new Vector2(MathF.Cos(angle - MathHelper.PiOver2) * 0.7f * radius, MathF.Sin(angle - MathHelper.PiOver2) * 0.7f * radius), null, Color.White, 0f, new Vector2(prograde.Width / 2, prograde.Height / 2), scale, SpriteEffects.None, 0f);
             spriteBatch.Draw(retrograde, position + new Vector2(MathF.Cos(angle + MathHelper.PiOver2) * 0.7f * radius, MathF.Sin(angle + MathHelper.PiOver2) * 0.7f * radius), null, Color.White, 0f, new Vector2(retrograde.Width / 2, retrograde.Height / 2), scale, SpriteEffects.None, 0f);

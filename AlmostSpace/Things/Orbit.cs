@@ -22,6 +22,8 @@ namespace AlmostSpace.Things
         Vector2D objectVelocity;
 
         Planet planetOrbiting;
+        Planet switchingTo;
+        int soiChangeCounter;
 
         Texture2D apTexture;
         Texture2D peTexture;
@@ -195,23 +197,33 @@ namespace AlmostSpace.Things
         // Changes the position and velocity vectors of the orbit to be relative to the given planet
         public void setPlanetOrbiting(Planet planet)
         {
-            if (stationaryObject)
+            if (stationaryObject || switchingTo != null)
             {
                 return;
             }
 
-            //clock.setTimeFactor(0);
+            Debug.WriteLine("AKHDSKGHSDJKGKDJGKJHGDSKJGHDKJSHGDKJSGHDKJSGDKSJDGFJKSDGFKSH");
 
+            clock.setTimeFactor(0);
+
+            switchingTo = planet;
+
+            
+        }
+
+        void switchPlanet()
+        {
             Debug.WriteLine("BEFORE:    Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
 
-            objectPosition = getPosition() - planet.getPosition();
-            objectVelocity = getVelocity() - planet.getVelocity();
+            objectPosition = getPosition() - switchingTo.getPosition();
+            objectVelocity = getVelocity() - switchingTo.getVelocity();
 
             //objectPosition = new Vector2D(148054327227.83652, 23494216235.473633);
             //objectVelocity = new Vector2D(-4846.474948306446, 28740.23504994603);
 
-            planetOrbiting = planet;
+            planetOrbiting = switchingTo;
+            switchingTo = null;
 
             Debug.WriteLine("AFTER:     Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
             Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
@@ -340,10 +352,26 @@ namespace AlmostSpace.Things
             return landed;
         }
 
+        public bool switchingSOI()
+        {
+            return switchingTo != null;
+        }
+
         // Takes into account engine thrust
         // cannot run under time warp - will be inaccurate
         public void Update(Vector2D objectAcceleration)
         {
+            if (switchingTo != null)
+            {
+                soiChangeCounter += 1;
+                if (soiChangeCounter > 5)
+                {
+                    switchPlanet();
+                    soiChangeCounter = 0;
+                    switchingTo = null;
+                }
+            }
+
             if (stationaryObject)
             {
                 return;
@@ -377,6 +405,17 @@ namespace AlmostSpace.Things
         // Allows time to be sped up without losing precision
         public void Update()
         {
+            if (switchingTo != null)
+            {
+                soiChangeCounter += 1;
+                if (soiChangeCounter > 0)
+                {
+                    switchPlanet();
+                    soiChangeCounter = 0;
+                    switchingTo = null;
+                }
+            }
+
             if (stationaryObject)
             {
                 return;
@@ -429,6 +468,17 @@ namespace AlmostSpace.Things
             if (name.Equals("Zoomy"))
             {
                 Debug.WriteLine(e);
+            }
+        }
+
+        public void updateScreenSize()
+        {
+            if (basicEffect != null)
+            {
+                basicEffect.Projection = Matrix.CreateOrthographicOffCenter
+                (0, graphicsDevice.Viewport.Width,     // left, right
+                graphicsDevice.Viewport.Height, 0,    // bottom, top
+                0, 1);
             }
         }
 
@@ -521,7 +571,6 @@ namespace AlmostSpace.Things
             bool fullOrbit = false;
 
             // Figure out what portion of trajectory should be rendered
-
             if (escapeTrajectory)
             {
                 startAngle = planetAngle - argP;

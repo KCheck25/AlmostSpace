@@ -19,20 +19,29 @@ namespace AlmostSpace.Things
             {
                 return Matrix.CreateTranslation(-(float)focusPosition.X - xOffset, -(float)focusPosition.Y - yOffset, 0)
                     * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
-                    * Matrix.CreateTranslation(1920 / 2, 1080 / 2, 0);
+                    * Matrix.CreateTranslation(ScreenWidth / 2, ScreenHeight / 2, 0);
             }
         }
+
+        public static int ScreenWidth = 1920;
+        public static int ScreenHeight = 1080;
         
         // Position of center of camera
         public Vector2D focusPosition;
         float xOffset;
         float yOffset;
 
+        float originalXOffset;
+        float originalYOffset;
+
         float zoom;
 
         float cameraSpeed = 500;
 
         int prevScrollValue = 0;
+
+        bool justClicked;
+        Point clickPos = new Point();
 
         // Create a new camera centered on the center of the screen with normal zoom
         public Camera()
@@ -77,6 +86,7 @@ namespace AlmostSpace.Things
             var kState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
 
+            // Arrow keys move the camera
             if (kState.IsKeyDown(Keys.Up))
             {
                 yOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
@@ -94,8 +104,29 @@ namespace AlmostSpace.Things
                 xOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
 
+            // Right click and drag also moves the camera!
+            if (mouseState.RightButton.Equals(ButtonState.Pressed))
+            {
+                if (!justClicked)
+                {
+                    justClicked = true;
+                    clickPos = mouseState.Position;
+                    originalXOffset = xOffset;
+                    originalYOffset = yOffset;
+                }
+                else
+                {
+                    xOffset = originalXOffset + -(1 / zoom) * (mouseState.Position.X - clickPos.X);
+                    yOffset = originalYOffset + -(1 / zoom) * (mouseState.Position.Y - clickPos.Y);
+                }
+            } else
+            {
+                justClicked = false;
+            }
+
             //Debug.WriteLine(mouseState.ScrollWheelValue);
 
+            // Scroll to zoom
             if (mouseState.ScrollWheelValue < prevScrollValue)
             {
                 zoom -= zoom / 5;

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using AlmostSpace.Things.UserInterface;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -35,9 +36,9 @@ namespace AlmostSpace.Things
         {
             buttonTexture = Content.Load<Texture2D>("Button1");
             backgroundImage = Content.Load<Texture2D>("menu_background");
-            startNewButton = new Button("Start New", uiFont, buttonTexture, startNewGame, new Vector2(1920 / 2 - buttonTexture.Width / 2, 500));
-            loadButton = new Button("Load", uiFont, buttonTexture, loadGame, new Vector2(1920 / 2 - buttonTexture.Width / 2, 600));
-            exitButton = new Button("Exit", uiFont, buttonTexture, exitCommand, new Vector2(1920 / 2 - buttonTexture.Width / 2, 700));
+            startNewButton = new Button("Start New", uiFont, buttonTexture, startNewGame, new Vector2(Camera.ScreenWidth / 2, 500));
+            loadButton = new Button("Load", uiFont, buttonTexture, loadGame, new Vector2(Camera.ScreenWidth / 2, 600));
+            exitButton = new Button("Exit", uiFont, buttonTexture, exitCommand, new Vector2(Camera.ScreenWidth / 2, 700));
         }
 
         public void Update(GameTime gameTime)
@@ -78,6 +79,13 @@ namespace AlmostSpace.Things
         public void Start()
         {
             next = -1;
+        }
+
+        public void Resize()
+        {
+            startNewButton.Resize();
+            loadButton.Resize();
+            exitButton.Resize();
         }
     }
 }

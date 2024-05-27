@@ -15,5 +15,6 @@ namespace AlmostSpace.Things
         public void LoadContent();
         public int NextScreen();
         public void Start();
+        public void Resize();
     }
 }

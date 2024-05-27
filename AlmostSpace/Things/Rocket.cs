@@ -95,6 +95,11 @@ namespace AlmostSpace.Things
             return engineOn ? "On" : "Off";
         }
 
+        public void setThrottle(float throttle)
+        {
+            this.throttle = throttle;
+        }
+
         // Checks for direction and throttle keyboard inputs and updates the
         // velocity and position of the rocket based on the forces acting on it.
         // Takes the time since the last frame as a parameter to make sure
@@ -163,16 +168,8 @@ namespace AlmostSpace.Things
             }
 
             //Debug.WriteLine(getPosition().Y);
-            
-            double planetSOI = getPlanetOrbiting().getSOI();
-            if (soiChange)
-            {
-                if (Math.Abs((getPosition() - justLeft.getPosition()).Length() - justLeft.getSOI()) > justLeft.getSOI() * 0.02)
-                {
-                    soiChange = false;
 
-                } 
-            }
+            double planetSOI = getPlanetOrbiting().getSOI();
 
             // Check if rocket exits current planet / moon's sphere of influence
             if (getOrbitRadius() > planetSOI && planetSOI != 0 && !soiChange)
@@ -192,6 +189,17 @@ namespace AlmostSpace.Things
                     soiChange = true;
                     break;
                 }
+            }
+
+            if (soiChange && !switchingSOI())
+            {
+                if (Math.Abs((getPosition() - justLeft.getPosition()).Length() - justLeft.getSOI()) > justLeft.getSOI() * 0.02)
+                {
+                    Debug.WriteLine("CHECKING FOR: " + justLeft.getName());
+                    Debug.WriteLine("Yipeee");
+                    soiChange = switchingSOI();
+
+                } 
             }
 
             if (getHeight() <= 0 && !getLanded())
@@ -217,7 +225,7 @@ namespace AlmostSpace.Things
             }
             else
             {
-                spriteBatch.Draw(texture, new Vector2(1920 / 2, 1080 / 2), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
+                spriteBatch.Draw(texture, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
             }
 
         }

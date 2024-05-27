@@ -133,6 +133,30 @@
 /processorParam:TextureFormat=Color
 /build:../../Raw Pictures/Sun.png;Sun.png
 
+#begin ../../Raw Pictures/ThrottleBar.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/ThrottleBar.png;ThrottleTextures/ThrottleBar.png
+
+#begin ../../Raw Pictures/ThrottleBox.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/ThrottleBox.png;ThrottleTextures/ThrottleBox.png
+
 #begin APindicator.png
 /importer:TextureImporter
 /processor:TextureProcessor
