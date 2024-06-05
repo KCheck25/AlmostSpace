@@ -32,6 +32,8 @@ namespace AlmostSpace.Things
         Texture2D throttleTexture;
         Texture2D throttleFrameTexture;
 
+        Texture2D buttonTexture;
+
         NavBallElement navBall;
         ThrottleElement throttle;
 
@@ -52,6 +54,8 @@ namespace AlmostSpace.Things
         int next = -1;
 
         public static bool startNewGame;
+        TextBox saveFileTextbox;
+        static string saveFile = "savedata.txt";
 
         public MapView(ContentManager Content, GraphicsDevice GraphicsDevice, SpriteFont uiFont) {
             this.Content = Content;
@@ -72,6 +76,7 @@ namespace AlmostSpace.Things
             soiTexture = Content.Load<Texture2D>("SOI");
             navBallTexture = Content.Load<Texture2D>("NavBallCenter");
             planetTextures.Add(Content.Load<Texture2D>("Sun"));
+            planetTextures.Add(Content.Load<Texture2D>("Mars"));
 
             navBallFrameTexture = Content.Load<Texture2D>("NavBallTextures\\NavBallFrame");
             progradeTexture = Content.Load<Texture2D>("NavBallTextures\\ProgradeSymbol");
@@ -81,10 +86,15 @@ namespace AlmostSpace.Things
 
             throttleTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBar");
             throttleFrameTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBox");
+
+            buttonTexture = Content.Load<Texture2D>("Button1");
+
+            Keybinds.readBindings();
         }
 
         public void newGame()
         {
+            saveFileTextbox = new TextBox("", setFilename, uiFont, buttonTexture, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2));
             planets = new List<Planet>();
 
             clock = new SimClock();
@@ -95,6 +105,7 @@ namespace AlmostSpace.Things
             planets.Add(new Planet("Earth", planetTextures[0], soiTexture, 5.97E24f, new Vector2D(1.4995E11, 0), new Vector2D(0, 29784.8), 6378.14E3f, planets[0], clock, GraphicsDevice));
             //earth = new Planet(earthTexture, 5.97E24f, new Vector2D(0, 0), 6378.14E3f);
             planets.Add(new Planet("Moon", planetTextures[1], soiTexture, 7.35E22f, new Vector2D(384400E3, 0), new Vector2D(0, 1000), 1.74E6f, planets[1], clock, GraphicsDevice));
+            planets.Add(new Planet("Mars", planetTextures[3], soiTexture, 5.97E24f, new Vector2D(1.8995E11, 0), new Vector2D(0, 27784.8), 6378.14E3f, planets[0], clock, GraphicsDevice));
             //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
 
             rocket = new Rocket("Zoomy", rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, planets[1], clock);
@@ -105,11 +116,13 @@ namespace AlmostSpace.Things
 
         public void loadGame()
         {
+            Directory.CreateDirectory("Saves");
+
             planets = new List<Planet>();
 
             String line;
             List<String> data = new List<String>();
-            using (StreamReader readtext = new StreamReader("savedata.txt"))
+            using (StreamReader readtext = new StreamReader("Saves\\" + saveFile))
             {
                 while (!readtext.EndOfStream)
                 {
@@ -168,8 +181,13 @@ namespace AlmostSpace.Things
 
         public void Update(GameTime gameTime)
         {
+            if (startNewGame)
+            {
+                saveFileTextbox.Update();
+            }
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) 
             {
+                
                 next = 0;
                 Save();
             }
@@ -225,27 +243,59 @@ namespace AlmostSpace.Things
             rocket.Draw(_spriteBatch, camera.transform, centerPosition, true);
             navBall.Draw(_spriteBatch);
             throttle.Draw(_spriteBatch);
-            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 60), Color.White);
-            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 95), Color.White);
-            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight() / 10) / 100 + "km", new Vector2(25, 130), Color.White);
-            _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 165), Color.White);
+            _spriteBatch.DrawString(uiFont, "Orbiting: " + rocket.getPlanetOrbiting().getName(), new Vector2(25, 25), Color.White);
+            _spriteBatch.DrawString(uiFont, "Height: " + Math.Round(rocket.getHeight() / 10) / 100 + "km", new Vector2(25, 60), Color.White);
+            _spriteBatch.DrawString(uiFont, "Velocity: " + Math.Round(rocket.getVelocityMagnitude() / 10) / 100 + "km/s", new Vector2(25, 95), Color.White);
+            _spriteBatch.DrawString(uiFont, "Apoapsis: " + Math.Round(rocket.getApoapsisHeight() / 10) / 100 + "km", new Vector2(25, 130), Color.White);
+            _spriteBatch.DrawString(uiFont, "Periapsis: " + Math.Round(rocket.getPeriapsisHeight() / 10) / 100 + "km", new Vector2(25, 165), Color.White);
+            _spriteBatch.DrawString(uiFont, "Period: " + Math.Round(rocket.getPeriod()) + "s", new Vector2(25, 200), Color.White);
             _spriteBatch.DrawString(uiFont, "Throttle: " + rocket.getThrottle() + "%", new Vector2(25, 270), Color.White);
             _spriteBatch.DrawString(uiFont, time, new Vector2(Camera.ScreenWidth - 25 - timeWidth, 25), Color.White);
-            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 345), Color.White);
+            _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 380), Color.White);
             _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(Camera.ScreenWidth - 25 - timeWarpWidth, 60), Color.White);
-            _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 235), Color.White);
+            _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 305), Color.White);
+
+            DrawPlanetNames(_spriteBatch);
+
+            if (startNewGame)
+            {
+                saveFileTextbox.Draw(_spriteBatch);
+            }
 
             _spriteBatch.End();
         }
 
+        public void DrawPlanetNames(SpriteBatch _spriteBatch)
+        {
+            float cameraZoom = camera.getZoom();
+            // 1E-7
+            foreach (Planet planet in planets)
+            {
+                // Check if its a moon
+                if (planet.getPlanetOrbiting() != null && planet.getPlanetOrbiting().getPlanetOrbiting() != null)
+                {
+                    if (cameraZoom < 1E-6 && cameraZoom > 1E-7)
+                    {
+                        _spriteBatch.DrawString(uiFont, planet.getName(), (planet.getPosition() - objectFocused.getPosition()).Transform(camera.transform).getVector2(), Color.White);
+
+                    }
+                }
+                else if (cameraZoom < 1E-7)
+                {
+                    _spriteBatch.DrawString(uiFont, planet.getName(), (planet.getPosition() - objectFocused.getPosition()).Transform(camera.transform).getVector2(), Color.White);
+                }
+            }
+        }
+
         void Save()
         {
-            String toSave = clock.getSaveData() + camera.getSaveData() + planets[0].getSaveData() + rocket.getSaveData();
-            using (StreamWriter writetext = new StreamWriter("savedata.txt"))
+            Directory.CreateDirectory("Saves");
+            string toSave = clock.getSaveData() + camera.getSaveData() + planets[0].getSaveData() + rocket.getSaveData();
+            using (StreamWriter writetext = new StreamWriter("Saves\\" + saveFile))
             {
                 writetext.WriteLine(toSave);
             }
+            Keybinds.saveBindings();
             //Debug.WriteLine(planets[0].getSaveData());
             //Debug.WriteLine(rocket.getSaveData());
         }
@@ -276,6 +326,21 @@ namespace AlmostSpace.Things
                 planet.updateScreenSize();
             }
             rocket.updateScreenSize();
+        }
+
+        public void ReadKey(Char key)
+        {
+            Debug.WriteLine((int)key);
+            if (saveFileTextbox != null)
+            {
+                saveFileTextbox.ReadKey(key);
+            }
+        }
+
+        public static void setFilename(string filename)
+        {
+            saveFile = filename + ".txt";
+            startNewGame = false;
         }
     }
 }

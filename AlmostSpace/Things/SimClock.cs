@@ -70,17 +70,17 @@ namespace AlmostSpace.Things
 
             var kState = Keyboard.GetState();
 
-            if (pToggle && kState.IsKeyDown(Keys.P))
+            if (pToggle && kState.IsKeyDown(Keybinds.pause))
             {
                 timeStopped = !timeStopped;
                 pToggle = false;
             }
-            if (kState.IsKeyUp(Keys.P))
+            if (kState.IsKeyUp(Keybinds.pause))
             {
                 pToggle = true;
             }
 
-            if (kState.IsKeyDown(Keys.OemPeriod) && !periodPressed)
+            if (kState.IsKeyDown(Keybinds.increaseTimeWarp) && !periodPressed)
             {
                 if (timeWarpLevel < timeWarpLevels.Length - 1)
                 {
@@ -89,7 +89,7 @@ namespace AlmostSpace.Things
                 periodPressed = true;
             }
 
-            if (kState.IsKeyDown(Keys.OemComma) && !commaPressed)
+            if (kState.IsKeyDown(Keybinds.decreaseTimeWarp) && !commaPressed)
             {
                 if (timeWarpLevel > 0)
                 {
@@ -98,17 +98,17 @@ namespace AlmostSpace.Things
                 commaPressed = true;
             }
 
-            if (kState.IsKeyDown(Keys.OemQuestion))
+            if (kState.IsKeyDown(Keybinds.cancelTimeWarp))
             {
                 timeWarpLevel = 0;
             }
 
-            if (kState.IsKeyUp(Keys.OemPeriod))
+            if (kState.IsKeyUp(Keybinds.increaseTimeWarp))
             {
                 periodPressed = false;
             }
 
-            if (kState.IsKeyUp(Keys.OemComma))
+            if (kState.IsKeyUp(Keybinds.decreaseTimeWarp))
             {
                 commaPressed = false;
             }

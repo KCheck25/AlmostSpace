@@ -19,12 +19,8 @@ namespace AlmostSpace.Things
         bool spaceToggle = true;
         bool engineOn = false;
 
-        bool soiChange = false;
-
         float engineThrust = 5000f;
         float throttle = 1;
-
-        Planet justLeft;
         
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
@@ -33,6 +29,8 @@ namespace AlmostSpace.Things
             this.texture = texture;
             this.mass = mass;
             this.angle = 0f;
+
+            setPathColor(Color.Orange);
 
             base.Update(new Vector2D());
         }
@@ -58,29 +56,19 @@ namespace AlmostSpace.Things
                         case "Engine On":
                             engineOn = bool.Parse(components[1]);
                             break;
-                        case "Just Changed SOI":
-                            soiChange = bool.Parse(components[1]);
-                            break;
                         case "Engine Thrust":
                             engineThrust = float.Parse(components[1]);
                             break;
                         case "Throttle":
                             throttle = float.Parse(components[1]);
                             break;
-                        case "Last Planet":
-                            foreach (Planet planet in planets)
-                            {
-                                if (planet.getName().Equals(components[1]))
-                                {
-                                    justLeft = planet;
-                                }
-                            }
-                            break;
                     }
 
                 }
 
             }
+            setPathColor(Color.Orange);
+
         }
 
         // Returns the rocket's current throttle as a percentage
@@ -106,15 +94,35 @@ namespace AlmostSpace.Things
         // calculations are based on real time.
         public new void Update()
         {
+            double planetSOI = getPlanetOrbiting().getSOI();
+
+            // Check if rocket exits current planet / moon's sphere of influence
+            if (getOrbitRadius() > planetSOI && planetSOI != 0)
+            {
+                setPlanetOrbiting(getPlanetOrbiting().getPlanetOrbiting());
+            }
+
+
+            // Check if rocket enters a sphere of influence within the current sphere of influence
+
+            foreach (Planet planet in getPlanetOrbiting().getChildren())
+            {
+                if ((getPosition() - planet.getPosition()).Length() < planet.getSOI() * 0.99)
+                {
+                    setPlanetOrbiting(planet);
+                    break;
+                }
+            }
+
             var kState = Keyboard.GetState();
 
             // Stop and start engine
-            if (spaceToggle && kState.IsKeyDown(Keys.Space))
+            if (spaceToggle && kState.IsKeyDown(Keybinds.toggleEngine))
             {
                 engineOn = !engineOn;
                 spaceToggle = false;
             }
-            if (kState.IsKeyUp(Keys.Space))
+            if (kState.IsKeyUp(Keybinds.toggleEngine))
             {
                 spaceToggle = true;
             }
@@ -124,32 +132,32 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            if (kState.IsKeyDown(Keys.LeftShift) && throttle < 10000)
+            if (kState.IsKeyDown(Keybinds.increaseThrottle) && throttle < 10000)
             {
                 throttle = throttle + 0.01f/*throttle > 0.99f ? 1 : throttle + 0.01f*/;
             }
 
-            if (kState.IsKeyDown(Keys.LeftControl) && throttle > 0)
+            if (kState.IsKeyDown(Keybinds.decreaseThrottle) && throttle > 0)
             {
                 throttle = throttle < 0.01f ? 0 : throttle - 0.01f;
             }
 
-            if (kState.IsKeyDown(Keys.X))
+            if (kState.IsKeyDown(Keybinds.cutThrottle))
             {
                 throttle = 0;
             }
 
-            if (kState.IsKeyDown(Keys.Z))
+            if (kState.IsKeyDown(Keybinds.fullThrottle))
             {
                 throttle = 1;
             }
 
-            if (kState.IsKeyDown(Keys.A))
+            if (kState.IsKeyDown(Keybinds.rotateRight))
             {
                 angle -= 3 * getClock().getFrameTime();
             }
 
-            if (kState.IsKeyDown(Keys.D))
+            if (kState.IsKeyDown(Keybinds.rotateLeft))
             {
                 angle += 3 * getClock().getFrameTime();
             }
@@ -169,38 +177,7 @@ namespace AlmostSpace.Things
 
             //Debug.WriteLine(getPosition().Y);
 
-            double planetSOI = getPlanetOrbiting().getSOI();
-
-            // Check if rocket exits current planet / moon's sphere of influence
-            if (getOrbitRadius() > planetSOI && planetSOI != 0 && !soiChange)
-            {
-                justLeft = getPlanetOrbiting();
-                setPlanetOrbiting(getPlanetOrbiting().getPlanetOrbiting());
-                soiChange = true;
-            }
-
-            // Check if rocket enters a sphere of influence within the current sphere of influence
-            foreach (Planet planet in getPlanetOrbiting().getChildren())
-            {
-                if ((getPosition() - planet.getPosition()).Length() < planet.getSOI() && !soiChange)
-                {
-                    justLeft = planet;
-                    setPlanetOrbiting(planet);
-                    soiChange = true;
-                    break;
-                }
-            }
-
-            if (soiChange && !switchingSOI())
-            {
-                if (Math.Abs((getPosition() - justLeft.getPosition()).Length() - justLeft.getSOI()) > justLeft.getSOI() * 0.02)
-                {
-                    Debug.WriteLine("CHECKING FOR: " + justLeft.getName());
-                    Debug.WriteLine("Yipeee");
-                    soiChange = switchingSOI();
-
-                } 
-            }
+            
 
             if (getHeight() <= 0 && !getLanded())
             {
@@ -253,10 +230,8 @@ namespace AlmostSpace.Things
             output += "Angle: " + angle + "\n";
             output += "Texture: " + texture + "\n";
             output += "Engine On: " + engineOn + "\n";
-            output += "Just Changed SOI: " + soiChange + "\n";
             output += "Engine Thrust: " + engineThrust + "\n";
             output += "Throttle: " + throttle + "\n";
-            output += "Last Planet: " + (justLeft != null ? justLeft.getName() : "none") + "\n";
 
             return output;
         }

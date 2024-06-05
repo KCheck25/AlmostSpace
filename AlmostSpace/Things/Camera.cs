@@ -87,19 +87,19 @@ namespace AlmostSpace.Things
             var mouseState = Mouse.GetState();
 
             // Arrow keys move the camera
-            if (kState.IsKeyDown(Keys.Up))
+            if (kState.IsKeyDown(Keybinds.cameraUp))
             {
                 yOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.Left))
+            if (kState.IsKeyDown(Keybinds.cameraLeft))
             {
                 xOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.Down))
+            if (kState.IsKeyDown(Keybinds.cameraDown))
             {
                 yOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
-            if (kState.IsKeyDown(Keys.Right))
+            if (kState.IsKeyDown(Keybinds.cameraRight))
             {
                 xOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
@@ -154,6 +154,11 @@ namespace AlmostSpace.Things
         public void setRotation()
         {
 
+        }
+
+        public float getZoom()
+        {
+            return zoom;
         }
 
         public String getSaveData()

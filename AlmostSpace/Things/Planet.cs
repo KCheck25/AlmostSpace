@@ -125,7 +125,6 @@ namespace AlmostSpace.Things
 
         public Planet(String data, List<Planet> planets, SimClock clock, List<Texture2D> textures, Texture2D soiTexture, GraphicsDevice graphicsDevice) : base(data, planets, clock, graphicsDevice)
         {
-            this.texture = texture;
             this.soiTexture = soiTexture;
             String[] lines = data.Split("\n");
             foreach (String line in lines)

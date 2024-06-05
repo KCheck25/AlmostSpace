@@ -22,14 +22,14 @@ namespace AlmostSpace.Things
         Vector2D objectVelocity;
 
         Planet planetOrbiting;
-        Planet switchingTo;
-        int soiChangeCounter;
 
         Texture2D apTexture;
         Texture2D peTexture;
 
         String name;
         String type;
+
+        Color pathColor = Color.White;
 
         double radius;           // distance from body (m)
         public double planetAngle;      // angle from body to current position (rad)
@@ -197,48 +197,37 @@ namespace AlmostSpace.Things
         // Changes the position and velocity vectors of the orbit to be relative to the given planet
         public void setPlanetOrbiting(Planet planet)
         {
-            if (stationaryObject || switchingTo != null)
+            if (stationaryObject)
             {
                 return;
             }
 
             Debug.WriteLine("AKHDSKGHSDJKGKDJGKJHGDSKJGHDKJSHGDKJSGHDKJSGDKSJDGFJKSDGFKSH");
 
-            clock.setTimeFactor(0);
+            //clock.setTimeFactor(0);
 
-            switchingTo = planet;
+            objectPosition = getPosition() - planet.getPosition();
+            objectVelocity = getVelocity() - planet.getVelocity();
 
-            
-        }
-
-        void switchPlanet()
-        {
-            Debug.WriteLine("BEFORE:    Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
-            Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
-
-            objectPosition = getPosition() - switchingTo.getPosition();
-            objectVelocity = getVelocity() - switchingTo.getVelocity();
-
-            //objectPosition = new Vector2D(148054327227.83652, 23494216235.473633);
-            //objectVelocity = new Vector2D(-4846.474948306446, 28740.23504994603);
-
-            planetOrbiting = switchingTo;
-            switchingTo = null;
-
-            Debug.WriteLine("AFTER:     Current Velocity: " + getVelocity() + " Current Position: " + getPosition());
-            Debug.WriteLine("RELATIVE:  Current Velocity: " + objectVelocity + " Current Position: " + objectPosition);
+            planetOrbiting = planet;
 
             radius = objectPosition.Length();
-            Debug.WriteLine(radius);
+            //Debug.WriteLine("Radius after: " + radius);
             planetAngle = Math.Atan2(-objectPosition.Y, objectPosition.X);
             calculateParameters();
             transitionToNoPhysics();
+
         }
 
         public void setLanded(bool landed)
         {
             this.landed = landed;
             objectVelocity = new Vector2D();
+        }
+
+        public void setPathColor(Color color)
+        {
+            pathColor = color;
         }
 
         // Gets the radius of the rocket at a given angle
@@ -352,25 +341,10 @@ namespace AlmostSpace.Things
             return landed;
         }
 
-        public bool switchingSOI()
-        {
-            return switchingTo != null;
-        }
-
         // Takes into account engine thrust
         // cannot run under time warp - will be inaccurate
         public void Update(Vector2D objectAcceleration)
         {
-            if (switchingTo != null)
-            {
-                soiChangeCounter += 1;
-                if (soiChangeCounter > 5)
-                {
-                    switchPlanet();
-                    soiChangeCounter = 0;
-                    switchingTo = null;
-                }
-            }
 
             if (stationaryObject)
             {
@@ -405,16 +379,6 @@ namespace AlmostSpace.Things
         // Allows time to be sped up without losing precision
         public void Update()
         {
-            if (switchingTo != null)
-            {
-                soiChangeCounter += 1;
-                if (soiChangeCounter > 0)
-                {
-                    switchPlanet();
-                    soiChangeCounter = 0;
-                    switchingTo = null;
-                }
-            }
 
             if (stationaryObject)
             {
@@ -638,7 +602,7 @@ namespace AlmostSpace.Things
             while (i < numPoints)
             {
                 double r = getRadiusAtAngle(semiMajorAxis, e, currentTheta);
-                PositionColorD point = new PositionColorD(new Vector2D(r * Math.Cos(currentTheta + argP) + planetOrbiting.getPosition().X, -r * Math.Sin(currentTheta + argP) + planetOrbiting.getPosition().Y) - origin, Color.White);
+                PositionColorD point = new PositionColorD(new Vector2D(r * Math.Cos(currentTheta + argP) + planetOrbiting.getPosition().X, -r * Math.Sin(currentTheta + argP) + planetOrbiting.getPosition().Y) - origin, pathColor);
                 if (i < numPoints)
                 {
                     path[i] = point;
