@@ -54,7 +54,6 @@ namespace AlmostSpace.Things
         int next = -1;
 
         public static bool startNewGame;
-        TextBox saveFileTextbox;
         static string saveFile = "savedata.txt";
 
         public MapView(ContentManager Content, GraphicsDevice GraphicsDevice, SpriteFont uiFont) {
@@ -94,7 +93,6 @@ namespace AlmostSpace.Things
 
         public void newGame()
         {
-            saveFileTextbox = new TextBox("", setFilename, uiFont, buttonTexture, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2));
             planets = new List<Planet>();
 
             clock = new SimClock();
@@ -181,10 +179,6 @@ namespace AlmostSpace.Things
 
         public void Update(GameTime gameTime)
         {
-            if (startNewGame)
-            {
-                saveFileTextbox.Update();
-            }
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) 
             {
                 
@@ -240,7 +234,8 @@ namespace AlmostSpace.Things
             float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
 
             _spriteBatch.Begin();
-            rocket.Draw(_spriteBatch, camera.transform, centerPosition, true);
+            rocket.Draw(_spriteBatch, camera.transform, centerPosition, camera.getRotation(), true);
+            DrawPlanetNames(_spriteBatch);
             navBall.Draw(_spriteBatch);
             throttle.Draw(_spriteBatch);
             _spriteBatch.DrawString(uiFont, "Orbiting: " + rocket.getPlanetOrbiting().getName(), new Vector2(25, 25), Color.White);
@@ -255,12 +250,6 @@ namespace AlmostSpace.Things
             _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(Camera.ScreenWidth - 25 - timeWarpWidth, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 305), Color.White);
 
-            DrawPlanetNames(_spriteBatch);
-
-            if (startNewGame)
-            {
-                saveFileTextbox.Draw(_spriteBatch);
-            }
 
             _spriteBatch.End();
         }
@@ -330,17 +319,12 @@ namespace AlmostSpace.Things
 
         public void ReadKey(Char key)
         {
-            Debug.WriteLine((int)key);
-            if (saveFileTextbox != null)
-            {
-                saveFileTextbox.ReadKey(key);
-            }
+            
         }
 
         public static void setFilename(string filename)
         {
             saveFile = filename + ".txt";
-            startNewGame = false;
         }
     }
 }

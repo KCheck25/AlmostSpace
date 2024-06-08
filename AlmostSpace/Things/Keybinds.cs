@@ -30,6 +30,8 @@ namespace AlmostSpace.Things
         public static Keys decreaseTimeWarp = Keys.OemComma;
         public static Keys cancelTimeWarp = Keys.OemQuestion;
 
+        public static Keys toggleFullScreen = Keys.F11;
+
         public static void saveBindings()
         {
             String toSave = "Toggle Engine: " + toggleEngine + "\n";
@@ -47,6 +49,7 @@ namespace AlmostSpace.Things
             toSave += "Increase Time Warp: " + increaseTimeWarp + "\n";
             toSave += "Decrease Time Warp: " + decreaseTimeWarp + "\n";
             toSave += "Cancel Time Warp: " + cancelTimeWarp + "\n";
+            toSave += "Toggle Full Screen: " + toggleFullScreen + "\n";
 
             using (StreamWriter writetext = new StreamWriter("bindings.txt"))
             {
@@ -129,6 +132,9 @@ namespace AlmostSpace.Things
                             break;
                         case "Cancel Time Warp":
                             cancelTimeWarp = key;
+                            break;
+                        case "Toggle Full Screen":
+                            toggleFullScreen = key;
                             break;
                     }
 

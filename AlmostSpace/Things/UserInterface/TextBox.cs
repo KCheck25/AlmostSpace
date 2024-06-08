@@ -83,12 +83,16 @@ namespace AlmostSpace.Things.UserInterface
             {
                 if ((int)key == 8)
                 {
-                    text = text.Substring(0, text.Length - 1);
+                    if (text.Length != 0)
+                    {
+                        text = text.Substring(0, text.Length - 1);
+                    }
                 } 
                 else if ((int)key == 13)
                 {
                     Debug.WriteLine(text);
                     command(text);
+                    text = "";
                 }
                 else if ((int)key >= 32)
                 {
@@ -103,6 +107,11 @@ namespace AlmostSpace.Things.UserInterface
             position.Y = yPercent * Camera.ScreenHeight;
 
             textPosition = position + textOffsets;
+        }
+
+        public void setSelected(bool selected)
+        {
+            this.selected = selected;
         }
 
         // Draws the button to the screen

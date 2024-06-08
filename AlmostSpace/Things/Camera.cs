@@ -19,7 +19,8 @@ namespace AlmostSpace.Things
             {
                 return Matrix.CreateTranslation(-(float)focusPosition.X - xOffset, -(float)focusPosition.Y - yOffset, 0)
                     * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
-                    * Matrix.CreateTranslation(ScreenWidth / 2, ScreenHeight / 2, 0);
+                    * Matrix.CreateTranslation(screenX(), screenY(), 0)
+                    * Matrix.CreateRotationZ(rotation);
             }
         }
 
@@ -39,6 +40,8 @@ namespace AlmostSpace.Things
         float cameraSpeed = 500;
 
         int prevScrollValue = 0;
+
+        float rotation = 0;
 
         bool justClicked;
         Point clickPos = new Point();
@@ -86,23 +89,28 @@ namespace AlmostSpace.Things
             var kState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
 
+            float yToMove = 0;
+            float xToMove = 0;
             // Arrow keys move the camera
             if (kState.IsKeyDown(Keybinds.cameraUp))
             {
-                yOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                yToMove -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keybinds.cameraLeft))
             {
-                xOffset -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                xToMove -= cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keybinds.cameraDown))
             {
-                yOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                yToMove += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
             if (kState.IsKeyDown(Keybinds.cameraRight))
             {
-                xOffset += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
+                xToMove += cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * (1 / zoom);
             }
+
+            xOffset += MathF.Cos(-rotation) * xToMove - MathF.Sin(-rotation) * yToMove;
+            yOffset += MathF.Sin(-rotation) * xToMove + MathF.Cos(-rotation) * yToMove;
 
             // Right click and drag also moves the camera!
             if (mouseState.RightButton.Equals(ButtonState.Pressed))
@@ -116,8 +124,12 @@ namespace AlmostSpace.Things
                 }
                 else
                 {
-                    xOffset = originalXOffset + -(1 / zoom) * (mouseState.Position.X - clickPos.X);
-                    yOffset = originalYOffset + -(1 / zoom) * (mouseState.Position.Y - clickPos.Y);
+                    Vector2 changeVector = new Vector2(-(1 / zoom) * (mouseState.Position.X - clickPos.X), -(1 / zoom) * (mouseState.Position.Y - clickPos.Y));
+                    float rotatedX = MathF.Cos(-rotation) * changeVector.X - MathF.Sin(-rotation) * changeVector.Y;
+                    float rotatedY = MathF.Sin(-rotation) * changeVector.X + MathF.Cos(-rotation) * changeVector.Y;
+
+                    xOffset = originalXOffset + rotatedX;
+                    yOffset = originalYOffset + rotatedY;
                 }
             } else
             {
@@ -151,14 +163,33 @@ namespace AlmostSpace.Things
             yOffset = 0;
         }
 
-        public void setRotation()
+        public void setRotation(float rotation)
         {
-
+            this.rotation = rotation;
         }
 
         public float getZoom()
         {
             return zoom;
+        }
+
+        public float getRotation()
+        {
+            return rotation;
+        }
+
+        float screenX()
+        {
+            float X = ScreenWidth / 2;
+            float Y = ScreenHeight / 2;
+            return MathF.Cos(-rotation) * X - MathF.Sin(-rotation) * Y;
+        }
+
+        float screenY()
+        {
+            float X = ScreenWidth / 2;
+            float Y = ScreenHeight / 2;
+            return MathF.Sin(-rotation) * X + MathF.Cos(-rotation) * Y;
         }
 
         public String getSaveData()

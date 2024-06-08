@@ -27,6 +27,8 @@ namespace AlmostSpace.Things.UserInterface
         bool isPressed;
         bool firstLoop;
 
+        bool justLoaded;
+
         float xPercent;
         float yPercent;
 
@@ -45,11 +47,12 @@ namespace AlmostSpace.Things.UserInterface
             Vector2 textDimensions = font.MeasureString(text);
             Vector2 textOffsets = new Vector2((dimensions.X - textDimensions.X) / 2, (dimensions.Y - textDimensions.Y) / 2);
             textPosition = position + textOffsets;
+
+            justLoaded = true;
         }
 
         public Button(string text, SpriteFont font, Texture2D texture, Action command, Vector2 position)
         {
-            this.text = text;
             this.font = font;
             this.position = position;
             this.position.X -= texture.Width / 2;
@@ -59,18 +62,31 @@ namespace AlmostSpace.Things.UserInterface
             this.command = command;
             firstLoop = true;
 
+            while (font.MeasureString(text).X > dimensions.X - 40)
+            {
+                text = text.Substring(1, text.Length - 1);
+            }
+            this.text = text;
+
             Vector2 textDimensions = font.MeasureString(text);
             textOffsets = new Vector2((dimensions.X - textDimensions.X) / 2, (dimensions.Y - textDimensions.Y) / 2);
             textPosition = this.position + textOffsets;
 
             xPercent = position.X / Camera.ScreenWidth;
             yPercent = position.Y / Camera.ScreenHeight;
+
+            justLoaded = true;
         }
 
         // Checks if the button is being pressed and runs the given command if so
         public void Update()
         {
             var mState = Mouse.GetState();
+            if (justLoaded)
+            {
+                justLoaded = (mState.LeftButton == ButtonState.Pressed);
+                return;
+            }
             if (mState.LeftButton == ButtonState.Pressed)
             {
                 Point mousePos = mState.Position;
@@ -91,6 +107,16 @@ namespace AlmostSpace.Things.UserInterface
             }
         }
 
+        public void setPosition(Vector2 position)
+        {
+            this.position = position;
+            this.position.X -= texture.Width / 2;
+            textPosition = this.position + textOffsets;
+
+            xPercent = position.X / Camera.ScreenWidth;
+            yPercent = position.Y / Camera.ScreenHeight;
+        }
+
         public void Resize()
         {
             position.X = xPercent * Camera.ScreenWidth - texture.Width / 2;
@@ -104,6 +130,16 @@ namespace AlmostSpace.Things.UserInterface
         {
             spriteBatch.Draw(texture, position, null, Color.White, 0f, new Vector2(), new Vector2(dimensions.X / texture.Width, dimensions.Y / texture.Height), SpriteEffects.None, 0f);
             spriteBatch.DrawString(font, text, textPosition, Color.Black);
+        }
+
+        public void resetButton()
+        {
+            justLoaded = true;
+        }
+
+        public Vector2 getPosition()
+        {
+            return position + new Vector2(texture.Width / 2, 0);
         }
     }
 }

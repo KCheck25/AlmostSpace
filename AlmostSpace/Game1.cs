@@ -106,7 +106,7 @@ namespace AlmostSpace
         {
             //Debug.WriteLine(GlobalConstants.ScreenWidth);
             var kState = Keyboard.GetState();
-            if (kState.IsKeyDown(Keys.F11) && !f11Toggle)
+            if (kState.IsKeyDown(Keybinds.toggleFullScreen) && !f11Toggle)
             {
                 Debug.WriteLine("Pressed");
                 f11Toggle = true;
@@ -130,7 +130,7 @@ namespace AlmostSpace
                 Camera.ScreenHeight = _graphics.PreferredBackBufferHeight;
                 currentScreen.Resize();
             }
-            if (!kState.IsKeyDown(Keys.F11))
+            if (!kState.IsKeyDown(Keybinds.toggleFullScreen))
             {
                 f11Toggle = false;
             }
