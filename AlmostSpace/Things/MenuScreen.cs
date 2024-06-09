@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,6 +28,7 @@ namespace AlmostSpace.Things
         Texture2D deleteButtonTexture;
         SpriteFont uiFont;
         Action exitCommand;
+        Song addingTheSun;
 
         ContentManager Content;
 
@@ -62,6 +64,11 @@ namespace AlmostSpace.Things
 
             nextButton = new Button("Next >", uiFont, buttonTexture, () => pageOnLoadScreen++, new Vector2());
             backButton = new Button("< Back", uiFont, buttonTexture, () => pageOnLoadScreen--, new Vector2());
+
+            addingTheSun = Content.Load<Song>("adding_the_sun");
+
+            MediaPlayer.Play(addingTheSun);
+
             //textBox = new TextBox("Hi", uiFont, buttonTexture, new Vector2(Camera.ScreenWidth / 2, 900));
         }
 
@@ -218,11 +225,16 @@ namespace AlmostSpace.Things
 
         public int NextScreen()
         {
+            if (next != -1)
+            {
+                MediaPlayer.Stop();
+            }
             return next;
         }
 
         public void Start()
         {
+            MediaPlayer.Play(addingTheSun);
             next = -1;
         }
 

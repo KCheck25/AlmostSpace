@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -18,13 +19,16 @@ namespace AlmostSpace.Things
 
         bool spaceToggle = true;
         bool engineOn = false;
+        bool engineNoisePlaying;
 
         float engineThrust = 5000f;
         float throttle = 1;
+
+        SoundEffectInstance engineNoise;
         
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(startingPlanet.getRadius(), 0), new Vector2D(0, 50), clock, graphicsDevice)
+        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock, SoundEffect engineNoise) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(startingPlanet.getRadius(), 0), new Vector2D(0, 50), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
@@ -33,9 +37,12 @@ namespace AlmostSpace.Things
             setPathColor(Color.Orange);
 
             base.Update(new Vector2D());
+
+            this.engineNoise = engineNoise.CreateInstance();
+            this.engineNoise.IsLooped = true;
         }
 
-        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
+        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, SoundEffect engineNoise) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
         {
             this.texture = texture;
 
@@ -69,6 +76,8 @@ namespace AlmostSpace.Things
             }
             setPathColor(Color.Orange);
 
+            this.engineNoise = engineNoise.CreateInstance();
+            this.engineNoise.IsLooped = true;
         }
 
         // Returns the rocket's current throttle as a percentage
@@ -94,6 +103,11 @@ namespace AlmostSpace.Things
         // calculations are based on real time.
         public new void Update()
         {
+            if (engineOn)
+            {
+                engineNoise.Volume = Math.Clamp(throttle, 0, 1);
+            }
+
             double planetSOI = getPlanetOrbiting().getSOI();
 
             // Check if rocket exits current planet / moon's sphere of influence
@@ -120,6 +134,13 @@ namespace AlmostSpace.Things
             if (spaceToggle && kState.IsKeyDown(Keybinds.toggleEngine))
             {
                 engineOn = !engineOn;
+                if (engineOn)
+                {
+                    engineNoise.Play();
+                } else
+                {
+                    engineNoise.Pause();
+                }
                 spaceToggle = false;
             }
             if (kState.IsKeyUp(Keybinds.toggleEngine))

@@ -181,6 +181,18 @@
 /processorParam:TextureFormat=Color
 /build:../../Raw Pictures/ThrottleBox.png;ThrottleTextures/ThrottleBox.png
 
+#begin a_few_jumps_away.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:a_few_jumps_away.mp3
+
+#begin adding_the_sun.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:adding_the_sun.mp3
+
 #begin APindicator.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -229,6 +241,12 @@
 /processorParam:TextureFormat=Color
 /build:Capsule.png
 
+#begin dark_ambient_music.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:dark_ambient_music.mp3
+
 #begin Earth.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -240,6 +258,12 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Earth.png
+
+#begin engine_sound2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:engine_sound2.wav
 
 #begin Moon.png
 /importer:TextureImporter
@@ -295,4 +319,22 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:SOI.png
+
+#begin space_jazz.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:space_jazz.mp3
+
+#begin vibing_over_venus.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:vibing_over_venus.mp3
+
+#begin wonder.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:wonder.mp3
 

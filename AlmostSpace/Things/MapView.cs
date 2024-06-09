@@ -1,10 +1,13 @@
 ﻿using AlmostSpace.Things.UserInterface;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -34,6 +37,10 @@ namespace AlmostSpace.Things
 
         Texture2D buttonTexture;
 
+        List<Song> songs;
+
+        SoundEffect engineNoise;
+
         NavBallElement navBall;
         ThrottleElement throttle;
 
@@ -51,6 +58,11 @@ namespace AlmostSpace.Things
 
         Orbit objectFocused;
 
+        Random rand;
+        double songEndTime;
+        float songDuration = 0;
+        double timeToStartNextSong;
+
         int next = -1;
 
         public static bool startNewGame;
@@ -63,6 +75,9 @@ namespace AlmostSpace.Things
             camera = new Camera();
             planets = new List<Planet>();
             planetTextures = new List<Texture2D>();
+            songs = new List<Song>();
+            rand = new Random();
+            songEndTime = 0;
         }
 
         public void LoadContent()
@@ -88,6 +103,19 @@ namespace AlmostSpace.Things
 
             buttonTexture = Content.Load<Texture2D>("Button1");
 
+            // A few jumps away by Arthur Vyncke
+            songs.Add(Content.Load<Song>("a_few_jumps_away"));
+            // Wonder by Nomyn
+            songs.Add(Content.Load<Song>("wonder"));
+            // Kevin MacLeod
+            songs.Add(Content.Load<Song>("vibing_over_venus"));
+            songs.Add(Content.Load<Song>("space_jazz"));
+
+            songs.Add(Content.Load<Song>("dark_ambient_music"));
+
+            engineNoise = Content.Load<SoundEffect>("engine_sound2");
+
+
             Keybinds.readBindings();
         }
 
@@ -106,7 +134,7 @@ namespace AlmostSpace.Things
             planets.Add(new Planet("Mars", planetTextures[3], soiTexture, 5.97E24f, new Vector2D(1.8995E11, 0), new Vector2D(0, 27784.8), 6378.14E3f, planets[0], clock, GraphicsDevice));
             //moonMoon = new Planet(moonTexture, soiTexture, 7.35E21f, new Vector2(20000E3F, 0), new Vector2(0, 500f), 5.74E5f, moon, clock, GraphicsDevice);
 
-            rocket = new Rocket("Zoomy", rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, planets[1], clock);
+            rocket = new Rocket("Zoomy", rocketTexture, apIndicator, peIndicator, GraphicsDevice, 50, planets[1], clock, engineNoise);
             objectFocused = rocket;
 
             InitUi();
@@ -163,7 +191,7 @@ namespace AlmostSpace.Things
             {
                 if (block.Contains("Type: Rocket"))
                 {
-                    rocket = new Rocket(block, planets, clock, GraphicsDevice, rocketTexture, apIndicator, peIndicator);
+                    rocket = new Rocket(block, planets, clock, GraphicsDevice, rocketTexture, apIndicator, peIndicator, engineNoise);
                     objectFocused = rocket;
                 }
             }
@@ -179,6 +207,24 @@ namespace AlmostSpace.Things
 
         public void Update(GameTime gameTime)
         {
+
+            //MediaPlayer.Play(songs[rand.Next(songs.Count)]);
+            if (gameTime.TotalGameTime.TotalSeconds > songEndTime)
+            {
+                timeToStartNextSong = gameTime.TotalGameTime.TotalSeconds + rand.Next(30) + 30;
+                Debug.WriteLine("SONG ENDED. STARTING NEXT AT: " + timeToStartNextSong);
+                songEndTime = int.MaxValue;
+            }
+            if (gameTime.TotalGameTime.TotalSeconds > timeToStartNextSong)
+            {
+                Song song = songs[rand.Next(songs.Count)];
+                MediaPlayer.Play(song);
+                songEndTime = gameTime.TotalGameTime.TotalSeconds + song.Duration.TotalSeconds;
+                Debug.WriteLine("PLAYING NEW SONG. ENDS AT: " + songEndTime);
+                Debug.WriteLine("SONG TIME: " + song.Duration.TotalSeconds);
+                timeToStartNextSong = int.MaxValue;
+            }
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) 
             {
                 
@@ -249,6 +295,7 @@ namespace AlmostSpace.Things
             _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 380), Color.White);
             _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(Camera.ScreenWidth - 25 - timeWarpWidth, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 305), Color.White);
+            _spriteBatch.DrawString(uiFont, "Time " + gameTime.TotalGameTime.TotalSeconds, new Vector2(25, 340), Color.White);
 
 
             _spriteBatch.End();
