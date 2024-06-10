@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
+    // Contains many useful functions for doing math involving orbital mechanics
     public static class OrbitMath
     {
         public static readonly double UNIVERSAL_G = 6.6743E-11;
 
+        // Calculates the true anomaly of an object given its eccentricity, semi major axis, angular momentum, elapsed time, and starting mean anomaly
         public static double getTrueAnomaly(double mu, double e, double semiMajorAxis, double time, double aMomentum, double m0)
         {
             if (e <= 1)
@@ -105,7 +107,8 @@ namespace AlmostSpace.Things
 
             return angle;
         }
-
+        
+        // Calculates the mean anomaly of an object along its orbit given its true anomaly and eccentricity
         public static double getMeanAnomaly(double e, double trueAnomaly)
         {
             if (e > 1)
@@ -125,11 +128,13 @@ namespace AlmostSpace.Things
             return -1 / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
         }
 
+        // Calculates the period of an object's orbit based on its semi major axis
         public static double calcPeriod(double semiMajorAxis, double mu)
         {
             return 2 * Math.PI * Math.Sqrt(Math.Pow(semiMajorAxis, 3) / mu);
         }
 
+        // Calculates the eccentricity vector of an object based on its position, velocity, and angular momentum
         public static Vector2D calcEccentricity(Vector2D position, Vector2D velocity, double angularMomentum, double mu)
         {
             double radius = position.Length();

@@ -12,7 +12,8 @@ using System.Net.Sockets;
 
 namespace AlmostSpace.Things.UserInterface
 {
-    // Represents a clickable button in the UI
+    // Represents a clickable button in the UI. Clicking the button runs the method passed
+    // to the button's constructor.
     internal class Button
     {
         string text;
@@ -34,23 +35,6 @@ namespace AlmostSpace.Things.UserInterface
 
         // Creates a new button object displaying the given text in the given font on the button,
         // using the given texture for the button, and at the given coordinates
-        public Button(string text, SpriteFont font, Texture2D texture, Action command, Vector2 position, Vector2 dimensions)
-        {
-            this.text = text;
-            this.font = font;
-            this.position = position;
-            this.dimensions = dimensions;
-            this.texture = texture;
-            this.command = command;
-            firstLoop = true;
-
-            Vector2 textDimensions = font.MeasureString(text);
-            Vector2 textOffsets = new Vector2((dimensions.X - textDimensions.X) / 2, (dimensions.Y - textDimensions.Y) / 2);
-            textPosition = position + textOffsets;
-
-            justLoaded = true;
-        }
-
         public Button(string text, SpriteFont font, Texture2D texture, Action command, Vector2 position)
         {
             this.font = font;
@@ -78,7 +62,7 @@ namespace AlmostSpace.Things.UserInterface
             justLoaded = true;
         }
 
-        // Checks if the button is being pressed and runs the given command if so
+        // Checks if the button is being pressed and runs the command given to the constructor if so
         public void Update()
         {
             var mState = Mouse.GetState();
@@ -93,6 +77,7 @@ namespace AlmostSpace.Things.UserInterface
                 if (mousePos.X < position.X + dimensions.X && mousePos.X > position.X && mousePos.Y < position.Y + dimensions.Y && mousePos.Y > position.Y)
                 {
                     isPressed = true;
+                    // Make sure the command is run once and not spammed
                     if (firstLoop)
                     {
                         command();
@@ -107,6 +92,7 @@ namespace AlmostSpace.Things.UserInterface
             }
         }
 
+        // Sets the position of this button on the screen
         public void setPosition(Vector2 position)
         {
             this.position = position;
@@ -117,6 +103,7 @@ namespace AlmostSpace.Things.UserInterface
             yPercent = position.Y / Camera.ScreenHeight;
         }
 
+        // Ensures the button displays in the correct spot when the window is resized
         public void Resize()
         {
             position.X = xPercent * Camera.ScreenWidth - texture.Width / 2;
@@ -132,11 +119,7 @@ namespace AlmostSpace.Things.UserInterface
             spriteBatch.DrawString(font, text, textPosition, Color.Black);
         }
 
-        public void resetButton()
-        {
-            justLoaded = true;
-        }
-
+        // Returns the position on the screen of the center of this button
         public Vector2 getPosition()
         {
             return position + new Vector2(texture.Width / 2, 0);

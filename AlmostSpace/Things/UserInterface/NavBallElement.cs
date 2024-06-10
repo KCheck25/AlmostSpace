@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things.UserInterface
 {
+    // Represents and displays a "navball" which is an instrument stolen from Kerbal Space program
+    // It essentially tells the user what direction they are facing relative to their current orbit.
     internal class NavBallElement
     {
         float angle;
@@ -25,6 +27,7 @@ namespace AlmostSpace.Things.UserInterface
         float radius;
         bool swapRiRo;
 
+        // Creates a new NavBallElement object at the given position, with the given size and textures.
         public NavBallElement(Vector2 position, float radius, Texture2D texture, Texture2D frame, Texture2D prograde, Texture2D retrograde, Texture2D radialIn, Texture2D radialOut)
         {
             this.texture = texture;
@@ -39,16 +42,19 @@ namespace AlmostSpace.Things.UserInterface
             scale = new Vector2(radius / (texture.Width / 2), radius / (texture.Height / 2));
         }
 
+        // Update the instrument
         public void Update(Rocket rocket)
         {
             angle = rocket.getAngle() - (float)Math.Atan2(rocket.getRelativeVelocity().Y, rocket.getRelativeVelocity().X);
             swapRiRo = rocket.getDirection() < 0;
         }
 
+        // Draw the navball to the screen
         public void Draw(SpriteBatch spriteBatch)
         {
             position = new Vector2(Camera.ScreenWidth - 200, Camera.ScreenHeight - 200);
             spriteBatch.Draw(texture, position, null, Color.White, angle, new Vector2(texture.Width / 2, texture.Height / 2), scale, SpriteEffects.None, 0f);
+            // Force the indicators to always render upright instead of being fixed to the ball
             spriteBatch.Draw(prograde, position + new Vector2(MathF.Cos(angle - MathHelper.PiOver2) * 0.7f * radius, MathF.Sin(angle - MathHelper.PiOver2) * 0.7f * radius), null, Color.White, 0f, new Vector2(prograde.Width / 2, prograde.Height / 2), scale, SpriteEffects.None, 0f);
             spriteBatch.Draw(retrograde, position + new Vector2(MathF.Cos(angle + MathHelper.PiOver2) * 0.7f * radius, MathF.Sin(angle + MathHelper.PiOver2) * 0.7f * radius), null, Color.White, 0f, new Vector2(retrograde.Width / 2, retrograde.Height / 2), scale, SpriteEffects.None, 0f);
             if (!swapRiRo)

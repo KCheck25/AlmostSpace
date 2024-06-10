@@ -181,6 +181,18 @@
 /processorParam:TextureFormat=Color
 /build:../../Raw Pictures/ThrottleBox.png;ThrottleTextures/ThrottleBox.png
 
+#begin ../../Raw Pictures/TutorialBox.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/TutorialBox.png;TutorialBox.png
+
 #begin a_few_jumps_away.mp3
 /importer:Mp3Importer
 /processor:SongProcessor

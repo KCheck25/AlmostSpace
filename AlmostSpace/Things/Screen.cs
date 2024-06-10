@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
+    // An interface representing a specific screen in the program
     public interface Screen
     {
         public void Update(GameTime gameTime);

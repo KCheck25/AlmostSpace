@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things.UserInterface
 {
+    // Represents a throttle bar element that allows the user to visually see the throttle
+    // level that they currently have their engines at.
     internal class ThrottleElement
     {
         float throttle;
@@ -20,6 +22,7 @@ namespace AlmostSpace.Things.UserInterface
         Vector2 position;
         Vector2 scale;
 
+        // Creates a new ThrottleElement object at the given position, with the given height and textures.
         public ThrottleElement(Vector2 position, float height, Texture2D texture, Texture2D frame)
         {
             this.texture = texture;
@@ -30,6 +33,8 @@ namespace AlmostSpace.Things.UserInterface
             scale = new Vector2(height / texture.Height, height / texture.Height);
         }
 
+        // Updates the bar to match the current throttle level, and allows the user
+        // to click and drag on the bar to change the throttle as well.
         public void Update(Rocket rocket)
         {
             throttle = rocket.getThrottle() / 100;
@@ -47,6 +52,7 @@ namespace AlmostSpace.Things.UserInterface
             }
         }
 
+        // Draws the throttle bar to the screen.
         public void Draw(SpriteBatch spriteBatch)
         {
             position = new Vector2(100, Camera.ScreenHeight - 200);

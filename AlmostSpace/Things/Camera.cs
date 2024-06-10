@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace AlmostSpace.Things
 {
+    // A 2D Camera object that converts coordinates of objects in space to coordinates
+    // on the screen. It can be moved, rotated, and zoomed in and out.
     // Adapted from https://roguesharp.wordpress.com/2014/07/13/tutorial-5-creating-a-2d-camera-with-pan-and-zoom-in-monogame/
     internal class Camera
     {
@@ -53,6 +55,7 @@ namespace AlmostSpace.Things
             zoom = 0.00006f;
         }
 
+        // Create a new camera based on data from a save file
         public Camera(String data)
         {
             String[] lines = data.Split("\n");
@@ -83,7 +86,7 @@ namespace AlmostSpace.Things
             }
         }
 
-        // Change the camera position / zoom based on user inputs
+        // Change the camera position and zoom based on user inputs
         public void update(GameTime gameTime)
         {
             var kState = Keyboard.GetState();
@@ -152,32 +155,32 @@ namespace AlmostSpace.Things
 
         }
 
-        public void setFocusPosition(Vector2D position)
-        {
-            this.focusPosition = position;
-        }
-
+        // Resets the camera's offsets from it's origin
         public void clearOffsets()
         {
             xOffset = 0; 
             yOffset = 0;
         }
 
+        // Sets the rotation of the camera in radians
         public void setRotation(float rotation)
         {
             this.rotation = rotation;
         }
 
+        // Returns the zoom level of the camera
         public float getZoom()
         {
             return zoom;
         }
 
+        // Returns the rotation of the camera in radians
         public float getRotation()
         {
             return rotation;
         }
 
+        // Returns the zero x position of the camera on the screen, accounting for camera rotation
         float screenX()
         {
             float X = ScreenWidth / 2;
@@ -185,6 +188,7 @@ namespace AlmostSpace.Things
             return MathF.Cos(-rotation) * X - MathF.Sin(-rotation) * Y;
         }
 
+        // Returns the zero y position of the camera on the screen, accounting for camera rotation
         float screenY()
         {
             float X = ScreenWidth / 2;
@@ -192,9 +196,10 @@ namespace AlmostSpace.Things
             return MathF.Sin(-rotation) * X + MathF.Cos(-rotation) * Y;
         }
 
-        public String getSaveData()
+        // Returns a string containing important camera data to be written to a save file
+        public string getSaveData()
         {
-            String output = "Type: " + "Camera" + "\n";
+            string output = "Type: " + "Camera" + "\n";
             output += "Focus Position: " + focusPosition.X + "," + focusPosition.Y + "\n";
             output += "X Offset: " + xOffset + "\n";
             output += "Y Offset: " + yOffset + "\n";

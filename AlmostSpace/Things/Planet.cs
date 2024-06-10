@@ -32,6 +32,8 @@ namespace AlmostSpace.Things
             this.planetRadius = radius;
         }
 
+        // Creates a new planet object using the given name, textures, mass, position, velocity, radius, the body it orbits,
+        // the clock it should use, and the graphics device it should use
         public Planet(String name, Texture2D texture, Texture2D soiTexture, float mass, Vector2D position, Vector2D velocity, double radius, Planet orbiting, SimClock clock, GraphicsDevice graphicsDevice) : base(name, "Planet", orbiting, position, velocity, clock, graphicsDevice)
         {
             this.texture = texture;
@@ -47,13 +49,13 @@ namespace AlmostSpace.Things
             orbiting.addChild(this);
         }
 
-        
-
+        // Specifies other planets that are orbiting this planet
         public void addChild(Planet child)
         {
             children.Add(child);
         }
 
+        // Returns a list of other planets orbiting this planet
         public List<Planet> getChildren()
         {
             return children;
@@ -65,6 +67,7 @@ namespace AlmostSpace.Things
             return mass;
         }
 
+        // Returns the radius of the sphere of influence of this planet
         public double getSOI()
         {
             return soi;
@@ -76,6 +79,7 @@ namespace AlmostSpace.Things
             return planetRadius;
         }
 
+        // Checks whether this planet has been clicked, and returns true if so
         public bool clicked(Matrix transform, Vector2D origin)
         {
             var mState = Mouse.GetState();
@@ -110,7 +114,8 @@ namespace AlmostSpace.Things
             spriteBatch.Draw(texture, new Vector2(0, -(float)(getPosition() - origin).Transform(transform).Length()), null, Color.White, 0f, new Vector2(texture.Width / 2, 0), Vector2.One, SpriteEffects.None, 0f);
         }
 
-        public new String getSaveData()
+        // Returns a string representing this planet's save data to be written to a save file
+        public new string getSaveData()
         {
             String output = base.getSaveData();
             output += "Texture: " + texture.Name + "\n";
@@ -123,13 +128,14 @@ namespace AlmostSpace.Things
             return output;
         }
 
-        public Planet(String data, List<Planet> planets, SimClock clock, List<Texture2D> textures, Texture2D soiTexture, GraphicsDevice graphicsDevice) : base(data, planets, clock, graphicsDevice)
+        // Creates a new planet from the given save file data
+        public Planet(string data, List<Planet> planets, SimClock clock, List<Texture2D> textures, Texture2D soiTexture, GraphicsDevice graphicsDevice) : base(data, planets, clock, graphicsDevice)
         {
             this.soiTexture = soiTexture;
-            String[] lines = data.Split("\n");
-            foreach (String line in lines)
+            string[] lines = data.Split("\n");
+            foreach (string line in lines)
             {
-                String[] components = line.Split(": ");
+                string[] components = line.Split(": ");
                 if (components.Length == 2)
                 {
                     switch (components[0])

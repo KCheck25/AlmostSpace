@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
+    // This class represents the main screen that the user interfaces with.
+    // It controls the actual game, drawing planets, trajectories, and rockets
+    // to the screen, draws the UI, and manages some of the music.
     internal class MapView : Screen
     {
         Texture2D rocketTexture;
@@ -36,6 +39,8 @@ namespace AlmostSpace.Things
         Texture2D throttleFrameTexture;
 
         Texture2D buttonTexture;
+
+        Texture2D tutorialBox;
 
         List<Song> songs;
 
@@ -66,8 +71,13 @@ namespace AlmostSpace.Things
         int next = -1;
 
         public static bool startNewGame;
+        public static bool isTutorial;
         static string saveFile = "savedata.txt";
 
+        Tutorial tutorial;
+
+        // Creates a new MapView object using the given content manager for loading in files, graphics device,
+        // and font in which to render text.
         public MapView(ContentManager Content, GraphicsDevice GraphicsDevice, SpriteFont uiFont) {
             this.Content = Content;
             this.GraphicsDevice = GraphicsDevice;
@@ -80,6 +90,7 @@ namespace AlmostSpace.Things
             songEndTime = 0;
         }
 
+        // Loads necessary image and sound files, and creates other important objects that will be used later
         public void LoadContent()
         {
             rocketTexture = Content.Load<Texture2D>("Arrow");
@@ -103,6 +114,8 @@ namespace AlmostSpace.Things
 
             buttonTexture = Content.Load<Texture2D>("Button1");
 
+            tutorialBox = Content.Load<Texture2D>("TutorialBox");
+
             // A few jumps away by Arthur Vyncke
             songs.Add(Content.Load<Song>("a_few_jumps_away"));
             // Wonder by Nomyn
@@ -115,10 +128,10 @@ namespace AlmostSpace.Things
 
             engineNoise = Content.Load<SoundEffect>("engine_sound2");
 
-
             Keybinds.readBindings();
         }
 
+        // Creates a new game, without using a save file
         public void newGame()
         {
             planets = new List<Planet>();
@@ -127,6 +140,7 @@ namespace AlmostSpace.Things
 
             camera = new Camera();
 
+            // Generate solar system
             planets.Add(new Planet("Sun", planetTextures[2], 1.989E30f, new Vector2D(), 6.96E8f));
             planets.Add(new Planet("Earth", planetTextures[0], soiTexture, 5.97E24f, new Vector2D(1.4995E11, 0), new Vector2D(0, 29784.8), 6378.14E3f, planets[0], clock, GraphicsDevice));
             //earth = new Planet(earthTexture, 5.97E24f, new Vector2D(0, 0), 6378.14E3f);
@@ -138,16 +152,24 @@ namespace AlmostSpace.Things
             objectFocused = rocket;
 
             InitUi();
+
+            if (isTutorial)
+            {
+                tutorial = new Tutorial(rocket, camera, clock, uiFont, tutorialBox);
+            }
+
         }
 
+        // Loads a saved game from a save file
         public void loadGame()
         {
             Directory.CreateDirectory("Saves");
 
             planets = new List<Planet>();
 
-            String line;
-            List<String> data = new List<String>();
+            // Break data up into chunks separated by the word "Type:"
+            string line;
+            List<string> data = new List<string>();
             using (StreamReader readtext = new StreamReader("Saves\\" + saveFile))
             {
                 while (!readtext.EndOfStream)
@@ -155,7 +177,7 @@ namespace AlmostSpace.Things
                     line = readtext.ReadLine();
                     if (line.Contains("Type:"))
                     {
-                        String block = "";
+                        string block = "";
                         while (!line.Equals(""))
                         {
                             block += line + "\n"; 
@@ -167,7 +189,9 @@ namespace AlmostSpace.Things
 
             }
 
-            foreach (String block in data)
+            // Create the camera and clock first based on the data, as these must
+            // be passed to other objects created in the next for loop
+            foreach (string block in data)
             {
                 if (block.Contains("Type: Clock"))
                 {
@@ -179,7 +203,8 @@ namespace AlmostSpace.Things
                 }
             }
 
-            foreach (String block in data)
+            // Create planets
+            foreach (string block in data)
             {
                 if (block.Contains("Type: Planet"))
                 {
@@ -187,7 +212,8 @@ namespace AlmostSpace.Things
                 }
             }
 
-            foreach (String block in data)
+            // Create the rocket
+            foreach (string block in data)
             {
                 if (block.Contains("Type: Rocket"))
                 {
@@ -197,18 +223,30 @@ namespace AlmostSpace.Things
             }
 
             InitUi();
+
+            if (isTutorial)
+            {
+                tutorial = new Tutorial(rocket, camera,clock, uiFont, tutorialBox);
+            }
+
         }
 
+        // Create the navball and throttle UI elements
         public void InitUi()
         {
             navBall = new NavBallElement(new Vector2(1700, 875), 150, navBallTexture, navBallFrameTexture, progradeTexture, retrogradeTexture, radialInTexture, radialOutTexture);
             throttle = new ThrottleElement(new Vector2(50, 500), 300, throttleTexture, throttleFrameTexture);
         }
 
+        // Updates planets, rockets, UI elements, and manages music
         public void Update(GameTime gameTime)
         {
+            if (isTutorial)
+            {
+                tutorial.Update();
+            }
 
-            //MediaPlayer.Play(songs[rand.Next(songs.Count)]);
+            // Manage music stuff
             if (gameTime.TotalGameTime.TotalSeconds > songEndTime)
             {
                 timeToStartNextSong = gameTime.TotalGameTime.TotalSeconds + rand.Next(30) + 30;
@@ -225,15 +263,18 @@ namespace AlmostSpace.Things
                 timeToStartNextSong = int.MaxValue;
             }
 
+            // Save and quit if the escape key is pressed
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) 
             {
                 
                 next = 0;
+                isTutorial = false;
                 Save();
             }
             clock.Update(gameTime);
             rocket.Update();
 
+            // Focus the camera on objects if they are clicked
             bool mouseDown = Mouse.GetState().LeftButton == ButtonState.Pressed;
 
             foreach (Planet planet in planets)
@@ -258,6 +299,7 @@ namespace AlmostSpace.Things
             //camera.setFocusPosition(rocket.getPosition());
         }
 
+        // Draws planets, the rocket, and UI elements to the screen
         public void Draw(GameTime gameTime, SpriteBatch _spriteBatch)
         {
             Vector2D centerPosition = objectFocused.getPosition();
@@ -273,10 +315,10 @@ namespace AlmostSpace.Things
 
 
             // Draw rocket, orbit information, and orbit
-            String time = clock.getDisplayTime();
+            string time = clock.getDisplayTime();
             float timeWidth = uiFont.MeasureString(time).X;
 
-            String timeWarp = "Time warp: " + clock.getTimeFactor() + "x";
+            string timeWarp = "Time warp: " + clock.getTimeFactor() + "x";
             float timeWarpWidth = uiFont.MeasureString(timeWarp).X;
 
             _spriteBatch.Begin();
@@ -296,11 +338,16 @@ namespace AlmostSpace.Things
             _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(Camera.ScreenWidth - 25 - timeWarpWidth, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 305), Color.White);
             _spriteBatch.DrawString(uiFont, "Time " + gameTime.TotalGameTime.TotalSeconds, new Vector2(25, 340), Color.White);
+            if (isTutorial)
+            {
+                tutorial.Draw(_spriteBatch);
+            }
 
 
             _spriteBatch.End();
         }
 
+        // Draws planet names to the screen, provided the user is zoomed out enough
         public void DrawPlanetNames(SpriteBatch _spriteBatch)
         {
             float cameraZoom = camera.getZoom();
@@ -323,6 +370,7 @@ namespace AlmostSpace.Things
             }
         }
 
+        // Saves the game to a save file
         void Save()
         {
             Directory.CreateDirectory("Saves");
@@ -336,11 +384,14 @@ namespace AlmostSpace.Things
             //Debug.WriteLine(rocket.getSaveData());
         }
 
+        // Returns the next screen to go to. If the number is -1, that tells the Game1 class to not switch the screen.
+        // Otherwise, the screen is switched based on the number passed.
         public int NextScreen()
         {
             return next;
         }
 
+        // Starts this screen, creating a new game or loading from a file based on what button was clicked
         public void Start()
         {
 
@@ -355,8 +406,13 @@ namespace AlmostSpace.Things
             next = -1;
         }
 
+        // Ensures everything draws in the correct location when the window is resized.
         public void Resize()
         {
+            if (isTutorial)
+            {
+                tutorial.Resize();
+            }
             foreach (Planet planet in planets)
             {
                 planet.updateScreenSize();
@@ -364,11 +420,14 @@ namespace AlmostSpace.Things
             rocket.updateScreenSize();
         }
 
-        public void ReadKey(Char key)
+        // Called whenever the user presses a key
+        // Needed to satisfy the Screen interface, but not used here
+        public void ReadKey(char key)
         {
             
         }
 
+        // Sets the file name to save and load files from
         public static void setFilename(string filename)
         {
             saveFile = filename + ".txt";

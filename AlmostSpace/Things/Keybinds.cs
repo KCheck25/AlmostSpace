@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
+    // This class contains all controls used within the game, allowing them to be easily referenced or changed
+    // It also tries to read keybinds from the bindings.txt file, which allows a user to change the controls
+    // without changing the source code by editing the file from a text editor. Eventually I plan to make a
+    // way to do this in the GUI, but I ran out of time :(
     internal class Keybinds
     {
         public static Keys toggleEngine = Keys.Space;
@@ -32,6 +36,7 @@ namespace AlmostSpace.Things
 
         public static Keys toggleFullScreen = Keys.F11;
 
+        // Write the current key bindings to a file
         public static void saveBindings()
         {
             String toSave = "Toggle Engine: " + toggleEngine + "\n";
@@ -55,10 +60,9 @@ namespace AlmostSpace.Things
             {
                 writetext.WriteLine(toSave);
             }
-            //Debug.WriteLine(planets[0].getSaveData());
-            //Debug.WriteLine(rocket.getSaveData());
         }
 
+        // Read and set keybinds from the bindings file
         public static void readBindings()
         {
             if (!File.Exists("bindings.txt"))

@@ -19,7 +19,7 @@ namespace AlmostSpace.Things
 
         bool spaceToggle = true;
         bool engineOn = false;
-        bool engineNoisePlaying;
+        bool stoppedSounds;
 
         float engineThrust = 5000f;
         float throttle = 1;
@@ -28,7 +28,7 @@ namespace AlmostSpace.Things
         
         // Constructs a new Rocket object with the given texture, orbit
         // segment texture, mass, and the planet it starts around.
-        public Rocket(String name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock, SoundEffect engineNoise) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(startingPlanet.getRadius(), 0), new Vector2D(0, 50), clock, graphicsDevice)
+        public Rocket(string name, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, GraphicsDevice graphicsDevice, float mass, Planet startingPlanet, SimClock clock, SoundEffect engineNoise) : base(name, "Rocket", apIndicator, peIndicator, startingPlanet, new Vector2D(startingPlanet.getRadius(), 0), new Vector2D(0, 50), clock, graphicsDevice)
         {
             this.texture = texture;
             this.mass = mass;
@@ -42,14 +42,15 @@ namespace AlmostSpace.Things
             this.engineNoise.IsLooped = true;
         }
 
-        public Rocket(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, SoundEffect engineNoise) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
+        // Constructs a new planet object from the given save file data
+        public Rocket(string data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D texture, Texture2D apIndicator, Texture2D peIndicator, SoundEffect engineNoise) : base(data, planets, clock, graphicsDevice, apIndicator, peIndicator)
         {
             this.texture = texture;
 
-            String[] lines = data.Split("\n");
-            foreach (String line in lines)
+            string[] lines = data.Split("\n");
+            foreach (string line in lines)
             {
-                String[] components = line.Split(": ");
+                string[] components = line.Split(": ");
                 if (components.Length == 2)
                 {
                     switch (components[0])
@@ -92,6 +93,7 @@ namespace AlmostSpace.Things
             return engineOn ? "On" : "Off";
         }
 
+        // Sets the throttle of this rocket object
         public void setThrottle(float throttle)
         {
             this.throttle = throttle;
@@ -103,8 +105,18 @@ namespace AlmostSpace.Things
         // calculations are based on real time.
         public new void Update()
         {
+            if (getClock().getTimeStopped() && !stoppedSounds)
+            {
+                engineNoise.Stop();
+                stoppedSounds = true;
+            }
             if (engineOn)
             {
+                if (stoppedSounds && !getClock().getTimeStopped())
+                {
+                    engineNoise.Play();
+                    stoppedSounds = false;
+                }
                 engineNoise.Volume = Math.Clamp(throttle, 0, 1);
             }
 
@@ -131,12 +143,13 @@ namespace AlmostSpace.Things
             var kState = Keyboard.GetState();
 
             // Stop and start engine
-            if (spaceToggle && kState.IsKeyDown(Keybinds.toggleEngine))
+            if (spaceToggle && kState.IsKeyDown(Keybinds.toggleEngine) && !getClock().getTimeStopped())
             {
                 engineOn = !engineOn;
                 if (engineOn)
                 {
                     engineNoise.Play();
+                    stoppedSounds = false;
                 } else
                 {
                     engineNoise.Pause();
@@ -228,6 +241,7 @@ namespace AlmostSpace.Things
 
         }
 
+        // Checks if the rocket has been clicked, and returns true if so
         public bool clicked(Matrix transform, Vector2D origin)
         {
             var mState = Mouse.GetState();
@@ -244,9 +258,10 @@ namespace AlmostSpace.Things
             return false;
         }
 
-        public new String getSaveData()
+        // Returns this rocket's data to be written to a save file
+        public new string getSaveData()
         {
-            String output = base.getSaveData();
+            string output = base.getSaveData();
             output += "Mass: " + mass + "\n";
             output += "Angle: " + angle + "\n";
             output += "Texture: " + texture + "\n";
@@ -257,6 +272,7 @@ namespace AlmostSpace.Things
             return output;
         }
 
+        // Returns the angle this rocket is facing
         public float getAngle()
         {
             return angle;

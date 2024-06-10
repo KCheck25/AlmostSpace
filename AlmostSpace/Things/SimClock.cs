@@ -11,6 +11,7 @@ using System.Xml;
 
 namespace AlmostSpace.Things
 {
+    // An object that serves as a clock for the game, controlling, stopping, and speeding up time.
     internal class SimClock
     {
         // possible time factors
@@ -34,12 +35,13 @@ namespace AlmostSpace.Things
 
         }
 
-        public SimClock(String data)
+        // Constructs a new SimClock object from the given save data
+        public SimClock(string data)
         {
-            String[] lines = data.Split("\n");
-            foreach(String line in lines)
+            string[] lines = data.Split("\n");
+            foreach(string line in lines)
             {
-                String[] components = line.Split(": ");
+                string[] components = line.Split(": ");
                 if (components.Length == 2)
                 {
                     switch (components[0])
@@ -121,13 +123,20 @@ namespace AlmostSpace.Things
             }
         }
 
+        // Pauses or starts the game
+        public void setPaused(bool paused)
+        {
+            this.timeStopped = paused;
+        }
+
         // gets the current time factor
         public float getTimeFactor()
         {
             return timeFactor;
         }
 
-        public void setTimeFactor(int timeFactor)
+        // Sets the time warp level
+        public void setTimeWarpLevel(int timeFactor)
         {
             this.timeWarpLevel = timeFactor;
         }
@@ -141,6 +150,10 @@ namespace AlmostSpace.Things
         // gets the time the last game loop took
         public float getFrameTime()
         {
+            if (timeStopped)
+            {
+                return 0;
+            }
             if (gameTime == null)
             {
                 return 1f / 60f;
@@ -155,7 +168,7 @@ namespace AlmostSpace.Things
         }
 
         // Returns the time elapsed as a string in years, days, hh:mm:ss
-        public String getDisplayTime()
+        public string getDisplayTime()
         {
             long totalSeconds = (long)totalTimeElapsed;
             long seconds = totalSeconds % 60;
@@ -164,16 +177,17 @@ namespace AlmostSpace.Things
             long days = (totalSeconds / 86400) % 365;
             long years = (totalSeconds / 31536000);
 
-            String secondsString = (seconds + "").Length == 1 ? "0" + seconds : seconds + "";
-            String minutesString = (minutes + "").Length == 1 ? "0" + minutes : minutes + "";
-            String hoursString = (hours + "").Length == 1 ? "0" + hours : hours + "";
+            string secondsString = (seconds + "").Length == 1 ? "0" + seconds : seconds + "";
+            string minutesString = (minutes + "").Length == 1 ? "0" + minutes : minutes + "";
+            string hoursString = (hours + "").Length == 1 ? "0" + hours : hours + "";
 
             return "Year " + years + ", Day " + days + ", " + hoursString + ":" + minutesString + ":" + secondsString;
         }
 
-        public String getSaveData()
+        // Returns the clock's data to be written to a save file
+        public string getSaveData()
         {
-            String output = "Type: " + "Clock" + "\n";
+            string output = "Type: " + "Clock" + "\n";
             output += "Total Time: " + totalTimeElapsed + "\n";
             output += "Time Warp Level: " + timeWarpLevel + "\n";
             output += "Time Factor: " + timeFactor + "\n";

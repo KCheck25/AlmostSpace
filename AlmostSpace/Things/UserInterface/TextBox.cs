@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace AlmostSpace.Things.UserInterface
 {
+    // Represents an interactable text box in the UI that can be used to get
+    // input from the user.
     internal class TextBox
     {
         string text;
@@ -29,6 +31,8 @@ namespace AlmostSpace.Things.UserInterface
 
         Action<string> command;
 
+        // Creates a new TextBox object with the given starting text, command to run when
+        // the enter key is pressed, font, texture, and position.
         public TextBox(string text, Action<string> command, SpriteFont font, Texture2D texture, Vector2 position)
         {
             this.text = text;
@@ -49,7 +53,7 @@ namespace AlmostSpace.Things.UserInterface
             this.command = command;
         }
 
-        // Checks if the button is being pressed and runs the given command if so
+        // Checks if the textbox is clicked and marks it as selected if so, so that the user can type.
         public void Update()
         {
             var mState = Mouse.GetState();
@@ -77,6 +81,7 @@ namespace AlmostSpace.Things.UserInterface
             }
         }
 
+        // Adds the given character to the textbox
         public void ReadKey(Char key)
         {
             if (selected)
@@ -101,6 +106,7 @@ namespace AlmostSpace.Things.UserInterface
             }
         }
 
+        // Ensures the textbox renders correctly when the window is resized
         public void Resize()
         {
             position.X = xPercent * Camera.ScreenWidth - texture.Width / 2;
@@ -109,15 +115,17 @@ namespace AlmostSpace.Things.UserInterface
             textPosition = position + textOffsets;
         }
 
+        // Allows the textbox to be selected automatically from other files
         public void setSelected(bool selected)
         {
             this.selected = selected;
         }
 
-        // Draws the button to the screen
+        // Draws the textbox to the screen
         public void Draw(SpriteBatch spriteBatch)
         {
-            String displayText = text;
+            // Only display as much text as will fit in the box
+            string displayText = text;
             while (font.MeasureString(displayText).X > dimensions.X - 40)
             {
                 displayText = displayText.Substring(1, displayText.Length - 1);

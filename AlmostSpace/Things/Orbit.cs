@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace AlmostSpace.Things
 {
-
+    // Represents the orbital trajectory of a body or rocket
     internal class Orbit
     {
 
@@ -26,8 +26,8 @@ namespace AlmostSpace.Things
         Texture2D apTexture;
         Texture2D peTexture;
 
-        String name;
-        String type;
+        string name;
+        string type;
 
         Color pathColor = Color.White;
 
@@ -59,8 +59,10 @@ namespace AlmostSpace.Things
 
         bool stationaryObject;
         bool landed;
-
-        public Orbit(String name, String type, Vector2D position)
+        
+        // Creates a new Orbit object from the given name, type, and position in space
+        // makes a stationary object that doesn't actually move
+        public Orbit(string name, string type, Vector2D position)
         {
             this.objectPosition = position;
             stationaryObject = true;
@@ -68,7 +70,8 @@ namespace AlmostSpace.Things
             this.type = type;
         }
 
-        public Orbit(String name, String type, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
+        // Creates a new orbit object from the given name, type, position, object being orbited, clock, and graphics device
+        public Orbit(string name, string type, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice) { 
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
             this.objectVelocity = objectVelocity;
@@ -90,7 +93,8 @@ namespace AlmostSpace.Things
 
         }
 
-        public Orbit(String name, String type, Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
+        // Creates a new orbit object that includes periapsis and apoapsis indicators
+        public Orbit(string name, string type, Texture2D apTexture, Texture2D peTexture, Planet planetOrbiting, Vector2D objectPosition, Vector2D objectVelocity, SimClock clock, GraphicsDevice graphicsDevice)
         {
             this.planetOrbiting = planetOrbiting;
             this.objectPosition = objectPosition;
@@ -115,7 +119,8 @@ namespace AlmostSpace.Things
 
         }
 
-        public Orbit(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice)
+        // Creates a new Orbit object based on data from a save file
+        public Orbit(string data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice)
         {
             this.clock = clock;
             this.graphicsDevice = graphicsDevice;
@@ -127,10 +132,10 @@ namespace AlmostSpace.Things
             graphicsDevice.Viewport.Height, 0,    // bottom, top
             0, 1);
 
-            String[] lines = data.Split("\n");
-            foreach (String line in lines)
+            string[] lines = data.Split("\n");
+            foreach (string line in lines)
             {
-                String[] components = line.Split(": ");
+                string[] components = line.Split(": ");
                 if (components.Length == 2)
                 {
                     switch (components[0])
@@ -186,7 +191,8 @@ namespace AlmostSpace.Things
 
         }
 
-        public Orbit(String data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D apTexture, Texture2D peTexture) : this(data, planets, clock, graphicsDevice)
+        // Creates a new orbit object with periapsis and apoapsis indicators based on data from a save file
+        public Orbit(string data, List<Planet> planets, SimClock clock, GraphicsDevice graphicsDevice, Texture2D apTexture, Texture2D peTexture) : this(data, planets, clock, graphicsDevice)
         {
             this.apTexture = apTexture;
             this.peTexture = peTexture;
@@ -219,12 +225,14 @@ namespace AlmostSpace.Things
 
         }
 
+        // Sets whether the object is landed on the surface of another body or not
         public void setLanded(bool landed)
         {
             this.landed = landed;
             objectVelocity = new Vector2D();
         }
 
+        // Sets the color of the object's trajectory
         public void setPathColor(Color color)
         {
             pathColor = color;
@@ -236,37 +244,43 @@ namespace AlmostSpace.Things
             return a * (1 - e * e) / (1 + e * Math.Cos(theta));
         }
 
+        // Returns the absolute position of the object
         public Vector2D getPosition()
         {
             return stationaryObject ? objectPosition : objectPosition + planetOrbiting.getPosition();
         }
 
+        // Returns the position of the object relative to the body it orbits
         public Vector2D getRelativePosition()
         {
             return objectPosition;
         }
 
+        // Returns the absolute velocity vector of the object
         public Vector2D getVelocity()
         {
             return stationaryObject ? objectVelocity : objectVelocity + planetOrbiting.getVelocity();
         }
 
+        // Returns the velocity vector relative to the body this object orbits
         public Vector2D getRelativeVelocity()
         {
             return objectVelocity;
         }
 
+        // Returns the semi major axis of this orbit
         public double getSemiMajorAxis()
         {
             return semiMajorAxis;
         }
 
-        // Returns the rockets height above the planets surface in meters
+        // Returns the object's height above the object it orbits' surface in meters
         public double getHeight()
         {
             return radius - planetOrbiting.getRadius();
         }
 
+        // Returns the distance from this object's center to the center of the object it orbits
         public double getOrbitRadius()
         {
             return radius;
@@ -296,27 +310,32 @@ namespace AlmostSpace.Things
             return period;
         }
 
+        // Returns whether the object is orbiting clockwise or counterclockwise
         public int getDirection()
         {
             return Math.Sign(aMomentum);
         }
 
+        // Returns the clock object used by this object
         public SimClock getClock()
         {
             return clock;
         }
 
+        // Returns the body that this object is orbiting
         public Planet getPlanetOrbiting()
         {
             return planetOrbiting;
         }
 
-        public String getName()
+        // Returns the name of this object
+        public string getName()
         {
             return name;
         }
 
-        public String getSaveData()
+        // Returns a string to be written to a save file containing this object's relevant information
+        public string getSaveData()
         {
             String output = "Type: " + type + "\n";
             output += "ID: " + name + "\n";
@@ -336,6 +355,7 @@ namespace AlmostSpace.Things
             return output;
         }
 
+        // Returns whether this object is landed on the surface of another body
         public bool getLanded()
         {
             return landed;
@@ -435,6 +455,8 @@ namespace AlmostSpace.Things
             }
         }
 
+        // Updates the screen size the BasicEffect that draws orbits uses
+        // without this trajectories get wonky when the user changes the window sizing
         public void updateScreenSize()
         {
             if (basicEffect != null)
@@ -446,6 +468,7 @@ namespace AlmostSpace.Things
             }
         }
 
+        // Draws this object's trajectory to the screen
         public void Draw(SpriteBatch spriteBatch, Matrix transform, Vector2D origin)
         {
             if (stationaryObject || landed)
