@@ -119,12 +119,17 @@ namespace AlmostSpace.Things
 
             // A few jumps away by Arthur Vyncke
             songs.Add(Content.Load<Song>("a_few_jumps_away"));
+
             // Wonder by Nomyn
             songs.Add(Content.Load<Song>("wonder"));
-            // Kevin MacLeod
+
+            // Vibing Over Venus by Kevin MacLeod
             songs.Add(Content.Load<Song>("vibing_over_venus"));
+
+            // Space Jazz by Kevin MacLeod
             songs.Add(Content.Load<Song>("space_jazz"));
 
+            // Unknown artist
             songs.Add(Content.Load<Song>("dark_ambient_music"));
 
             engineNoise = Content.Load<SoundEffect>("engine_sound2");

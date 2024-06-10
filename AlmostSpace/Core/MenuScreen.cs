@@ -65,6 +65,8 @@ namespace AlmostSpace.Things
         {
             buttonTexture = Content.Load<Texture2D>("Button1");
             deleteButtonTexture = Content.Load<Texture2D>("DeleteButton");
+
+            // Picture from https://opengameart.org/content/pixel-space
             backgroundImage = Content.Load<Texture2D>("menu_background");
             titleTexture = Content.Load<Texture2D>("title");
             startNewButton = new Button("Start New", uiFont, buttonTexture, () => creatingFile = true, new Vector2(Camera.ScreenWidth / 2 - (buttonTexture.Width + 25) / 2, 500));
@@ -83,6 +85,7 @@ namespace AlmostSpace.Things
             nextButton = new Button("Next >", uiFont, buttonTexture, () => pageOnLoadScreen++, new Vector2());
             backButton = new Button("< Back", uiFont, buttonTexture, () => pageOnLoadScreen--, new Vector2());
 
+            // Adding the Sun by Kevin MacLeod
             addingTheSun = Content.Load<Song>("adding_the_sun");
 
             MediaPlayer.Play(addingTheSun);
@@ -215,7 +218,6 @@ namespace AlmostSpace.Things
         public void Draw(GameTime gameTime, SpriteBatch _spriteBatch)
         {
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            // Picture from https://opengameart.org/content/pixel-space
             Vector2 bgScale = new Vector2((float)Camera.ScreenHeight / backgroundImage.Height, (float)Camera.ScreenHeight / backgroundImage.Height);
             _spriteBatch.Draw(backgroundImage, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2), null, Color.White, 0f, new Vector2(backgroundImage.Width / 2, backgroundImage.Height / 2), bgScale, SpriteEffects.None, 0f);
             if (loadingFile)
