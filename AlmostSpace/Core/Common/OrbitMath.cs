@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using AlmostSpace.Core.Common;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

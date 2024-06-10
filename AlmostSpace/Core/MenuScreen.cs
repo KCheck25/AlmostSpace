@@ -1,4 +1,5 @@
-﻿using AlmostSpace.Things.UserInterface;
+﻿using AlmostSpace.Core.Common;
+using AlmostSpace.Things.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -24,13 +25,16 @@ namespace AlmostSpace.Things
         Button exitButton;
         Button tutorialButton;
         Button aboutButton;
+        Button controlsButton;
         DisplayTextBox aboutMeBlurb;
-        TextBox textBox;
+        DisplayTextBox controlsBlurb;
         Texture2D buttonTexture;
         Texture2D backgroundImage;
+        Texture2D titleTexture;
         Texture2D deleteButtonTexture;
         Texture2D aboutMeBoxTexture;
         SpriteFont uiFont;
+        SpriteFont titleFont;
         Action exitCommand;
         Song addingTheSun;
 
@@ -39,6 +43,7 @@ namespace AlmostSpace.Things
         bool loadingFile;
         bool creatingFile;
         bool aboutScreen;
+        bool controlsScreen;
         Button[] fileSelectButtons;
         Button[] deleteButtons;
         TextBox selectFilename;
@@ -61,12 +66,16 @@ namespace AlmostSpace.Things
             buttonTexture = Content.Load<Texture2D>("Button1");
             deleteButtonTexture = Content.Load<Texture2D>("DeleteButton");
             backgroundImage = Content.Load<Texture2D>("menu_background");
-            startNewButton = new Button("Start New", uiFont, buttonTexture, () => creatingFile = true, new Vector2(Camera.ScreenWidth / 2, 500));
-            tutorialButton = new Button("Tutorial", uiFont, buttonTexture, startTutorial, new Vector2(Camera.ScreenWidth / 2, 700));
-            loadButton = new Button("Load", uiFont, buttonTexture, loadGame, new Vector2(Camera.ScreenWidth / 2, 600));
-            aboutButton = new Button("About", uiFont, buttonTexture, () => aboutScreen = true, new Vector2(Camera.ScreenWidth / 2, 800));
-            exitButton = new Button("Exit", uiFont, buttonTexture, exitCommand, new Vector2(Camera.ScreenWidth / 2, 900));
+            titleTexture = Content.Load<Texture2D>("title");
+            startNewButton = new Button("Start New", uiFont, buttonTexture, () => creatingFile = true, new Vector2(Camera.ScreenWidth / 2 - (buttonTexture.Width + 25) / 2, 500));
+            tutorialButton = new Button("Tutorial", uiFont, buttonTexture, startTutorial, new Vector2(Camera.ScreenWidth / 2 - (buttonTexture.Width + 25) / 2, 600));
+            loadButton = new Button("Load", uiFont, buttonTexture, loadGame, new Vector2(Camera.ScreenWidth / 2 + (buttonTexture.Width + 25) / 2, 500));
+            aboutButton = new Button("About", uiFont, buttonTexture, () => aboutScreen = true, new Vector2(Camera.ScreenWidth / 2 + (buttonTexture.Width + 25) / 2, 600));
+            exitButton = new Button("Exit", uiFont, buttonTexture, exitCommand, new Vector2(Camera.ScreenWidth / 2 + (buttonTexture.Width + 25) / 2, 700));
+            controlsButton = new Button("Controls", uiFont, buttonTexture, () => controlsScreen = true, new Vector2(Camera.ScreenWidth / 2 - (buttonTexture.Width + 25) / 2, 700));
             aboutMeBoxTexture = Content.Load<Texture2D>("TutorialBox");
+
+            titleFont = Content.Load<SpriteFont>("TitleFont");
 
             selectFilename = new TextBox("", startNewGame, uiFont, buttonTexture, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2));
             selectFilename.setSelected(true);
@@ -78,9 +87,8 @@ namespace AlmostSpace.Things
 
             MediaPlayer.Play(addingTheSun);
 
-            aboutMeBlurb = new DisplayTextBox(uiFont, aboutMeBoxTexture, 1000, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2), aboutMe());
-
-            //textBox = new TextBox("Hi", uiFont, buttonTexture, new Vector2(Camera.ScreenWidth / 2, 900));
+            aboutMeBlurb = new DisplayTextBox(uiFont, aboutMeBoxTexture, 1000, new Vector2(Camera.ScreenWidth / 2, 450), aboutMe());
+            controlsBlurb = new DisplayTextBox(uiFont, aboutMeBoxTexture, 1000, new Vector2(Camera.ScreenWidth / 2, 450), Keybinds.getControlsString());
         }
 
         // Updates the currently displayed buttons and UI elements, and 
@@ -101,6 +109,10 @@ namespace AlmostSpace.Things
                 else if (aboutScreen)
                 {
                     aboutScreen = false;
+                }
+                else if (controlsScreen)
+                {
+                    controlsScreen = false;
                 }
             }
 
@@ -132,6 +144,10 @@ namespace AlmostSpace.Things
             {
                 return;
             }
+            else if (controlsScreen)
+            {
+                return;
+            }
             else
             {
                 startNewButton.Update();
@@ -139,6 +155,7 @@ namespace AlmostSpace.Things
                 exitButton.Update();
                 tutorialButton.Update();
                 aboutButton.Update();
+                controlsButton.Update();
             }
             
         }
@@ -203,7 +220,9 @@ namespace AlmostSpace.Things
             _spriteBatch.Draw(backgroundImage, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2), null, Color.White, 0f, new Vector2(backgroundImage.Width / 2, backgroundImage.Height / 2), bgScale, SpriteEffects.None, 0f);
             if (loadingFile)
             {
-                _spriteBatch.DrawString(uiFont, "Select a Save File to Load:", new Vector2(Camera.ScreenWidth / 2 - 140, 25), Color.White);
+                Vector2 textPos = new Vector2(Camera.ScreenWidth / 2 - 140, 25);
+                _spriteBatch.DrawString(uiFont, "Select a Save File to Load:", textPos + new Vector2(3, 3), Color.Black);
+                _spriteBatch.DrawString(uiFont, "Select a Save File to Load:", textPos, Color.White);
                 int maxButtons = (Camera.ScreenHeight / 100) - 1;
                 int height = 100;
                 int maxPage = fileSelectButtons.Length / maxButtons;
@@ -237,13 +256,25 @@ namespace AlmostSpace.Things
             }
             else if (creatingFile)
             {
-                _spriteBatch.DrawString(uiFont, "Enter a name for your new save:", new Vector2(Camera.ScreenWidth / 2 - 200, Camera.ScreenHeight / 2 - 50), Color.White);
+                Vector2 textPos = new Vector2(Camera.ScreenWidth / 2 - 210, Camera.ScreenHeight / 2 - 50);
+                _spriteBatch.DrawString(uiFont, "Enter a name for your new save:", textPos + new Vector2(3, 3), Color.Black);
+                _spriteBatch.DrawString(uiFont, "Enter a name for your new save:", textPos, Color.White);
                 selectFilename.Draw(_spriteBatch);
                 selectFilename.setSelected(true);
             }
             else if (aboutScreen)
             {
-                aboutMeBlurb.draw(_spriteBatch);
+                Vector2 textPos = new Vector2(Camera.ScreenWidth / 2 - 200, 50);
+                _spriteBatch.DrawString(titleFont, "About:", textPos + new Vector2(5, 5), Color.Black);
+                _spriteBatch.DrawString(titleFont, "About:", textPos, Color.White);
+                aboutMeBlurb.Draw(_spriteBatch);
+            }
+            else if (controlsScreen)
+            {
+                Vector2 textPos = new Vector2(Camera.ScreenWidth / 2 - 300, 50);
+                _spriteBatch.DrawString(titleFont, "Controls:", textPos + new Vector2(5, 5), Color.Black);
+                _spriteBatch.DrawString(titleFont, "Controls:", textPos, Color.White);
+                controlsBlurb.Draw(_spriteBatch );
             }
             else
             {
@@ -252,6 +283,8 @@ namespace AlmostSpace.Things
                 exitButton.Draw(_spriteBatch);
                 tutorialButton.Draw(_spriteBatch);
                 aboutButton.Draw(_spriteBatch);
+                controlsButton.Draw(_spriteBatch);
+                _spriteBatch.Draw(titleTexture, new Vector2(Camera.ScreenWidth / 2, 50), null, Color.White, 0f, new Vector2(titleTexture.Width / 2, 0), Camera.ScreenHeight / titleTexture.Height * 0.3f, SpriteEffects.None, 0f);
             }
             //textBox.Draw(_spriteBatch);
             _spriteBatch.End();
@@ -277,15 +310,17 @@ namespace AlmostSpace.Things
         // Ensures elements are drawn correctly when the screen is resized
         public void Resize()
         {
-            startNewButton.Resize();
-            loadButton.setPosition(startNewButton.getPosition() + new Vector2(0, 100));
-            tutorialButton.setPosition(loadButton.getPosition() + new Vector2(0, 100));
-            aboutButton.setPosition(tutorialButton.getPosition() + new Vector2(0, 100));
-            exitButton.setPosition(aboutButton.getPosition() + new Vector2(0, 100));
+            startNewButton.setPosition(new Vector2(Camera.ScreenWidth / 2 - (buttonTexture.Width + 25) / 2, Camera.ScreenHeight / 2.5f));
+            loadButton.setPosition(new Vector2(Camera.ScreenWidth / 2 + (buttonTexture.Width + 25) / 2, Camera.ScreenHeight / 2.5f));
+            tutorialButton.setPosition(startNewButton.getPosition() + new Vector2(0, 100));
+            aboutButton.setPosition(loadButton.getPosition() + new Vector2(0, 100));
+            exitButton.setPosition(tutorialButton.getPosition() + new Vector2(0, 100));
+            controlsButton.setPosition(aboutButton.getPosition() + new Vector2(0, 100));
             //loadButton.Resize();
             //exitButton.Resize();
             selectFilename.Resize();
             aboutMeBlurb.Resize();
+            controlsBlurb.Resize();
         }
 
         // Called when the user presses a key

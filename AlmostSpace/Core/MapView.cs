@@ -266,7 +266,7 @@ namespace AlmostSpace.Things
             // Save and quit if the escape key is pressed
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) 
             {
-                
+                rocket.stopNoise();
                 next = 0;
                 isTutorial = false;
                 Save();
@@ -337,7 +337,6 @@ namespace AlmostSpace.Things
             _spriteBatch.DrawString(uiFont, "Fps: " + Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(25, 380), Color.White);
             _spriteBatch.DrawString(uiFont, timeWarp, new Vector2(Camera.ScreenWidth - 25 - timeWarpWidth, 60), Color.White);
             _spriteBatch.DrawString(uiFont, "Engine " + rocket.getEngineState(), new Vector2(25, 305), Color.White);
-            _spriteBatch.DrawString(uiFont, "Time " + gameTime.TotalGameTime.TotalSeconds, new Vector2(25, 340), Color.White);
             if (isTutorial)
             {
                 tutorial.Draw(_spriteBatch);

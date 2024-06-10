@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using AlmostSpace.Core.Common;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -32,7 +33,7 @@ namespace AlmostSpace.Things
         {
             this.texture = texture;
             this.mass = mass;
-            this.angle = 0f;
+            this.angle = -0.1f;
 
             setPathColor(Color.Orange);
 
@@ -117,7 +118,7 @@ namespace AlmostSpace.Things
                     engineNoise.Play();
                     stoppedSounds = false;
                 }
-                engineNoise.Volume = Math.Clamp(throttle, 0, 1);
+                engineNoise.Volume = Math.Clamp(throttle * 0.25f, 0, 0.25f);
             }
 
             double planetSOI = getPlanetOrbiting().getSOI();
@@ -168,7 +169,7 @@ namespace AlmostSpace.Things
 
             if (kState.IsKeyDown(Keybinds.increaseThrottle) && throttle < 10000)
             {
-                throttle = throttle + 0.01f/*throttle > 0.99f ? 1 : throttle + 0.01f*/;
+                throttle = throttle > 0.99f ? 1 : throttle + 0.01f;
             }
 
             if (kState.IsKeyDown(Keybinds.decreaseThrottle) && throttle > 0)
@@ -239,6 +240,12 @@ namespace AlmostSpace.Things
                 spriteBatch.Draw(texture, new Vector2(Camera.ScreenWidth / 2, Camera.ScreenHeight / 2), null, Color.White, angle + MathHelper.PiOver2, new Vector2(14f, 19f), Vector2.One, SpriteEffects.None, 0f);
             }
 
+        }
+
+        // Stops the engine noise
+        public void stopNoise()
+        {
+            engineNoise.Stop();
         }
 
         // Checks if the rocket has been clicked, and returns true if so

@@ -181,6 +181,18 @@
 /processorParam:TextureFormat=Color
 /build:../../Raw Pictures/ThrottleBox.png;ThrottleTextures/ThrottleBox.png
 
+#begin ../../Raw Pictures/title.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../Raw Pictures/title.png;title.png
+
 #begin ../../Raw Pictures/TutorialBox.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -337,6 +349,13 @@
 /processor:SongProcessor
 /processorParam:Quality=Best
 /build:space_jazz.mp3
+
+#begin TitleFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:TitleFont.spritefont
 
 #begin vibing_over_venus.mp3
 /importer:Mp3Importer

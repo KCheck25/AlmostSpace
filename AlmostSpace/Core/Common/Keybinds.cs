@@ -39,7 +39,18 @@ namespace AlmostSpace.Things
         // Write the current key bindings to a file
         public static void saveBindings()
         {
-            String toSave = "Toggle Engine: " + toggleEngine + "\n";
+            string toSave = getBindings();
+
+            using (StreamWriter writetext = new StreamWriter("bindings.txt"))
+            {
+                writetext.WriteLine(toSave);
+            }
+        }
+
+        // Generates a string of all key bindings
+        public static string getBindings()
+        {
+            string toSave = "Toggle Engine: " + toggleEngine + "\n";
             toSave += "Increase Throttle: " + increaseThrottle + "\n";
             toSave += "Decrease Throttle: " + decreaseThrottle + "\n";
             toSave += "Full Throttle: " + fullThrottle + "\n";
@@ -56,10 +67,17 @@ namespace AlmostSpace.Things
             toSave += "Cancel Time Warp: " + cancelTimeWarp + "\n";
             toSave += "Toggle Full Screen: " + toggleFullScreen + "\n";
 
-            using (StreamWriter writetext = new StreamWriter("bindings.txt"))
-            {
-                writetext.WriteLine(toSave);
-            }
+            return toSave;
+        }
+
+        // Generates a string explaining the controls
+        public static string getControlsString()
+        {
+            string output = "Keyboard:\n" + getBindings() + "\n" +
+                "Mouse:\n" +
+                "Pan Camera: Right Click\n" +
+                "Focus Camera on Object: Left Click";
+            return output;
         }
 
         // Read and set keybinds from the bindings file

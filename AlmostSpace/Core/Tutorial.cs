@@ -1,4 +1,5 @@
-﻿using AlmostSpace.Things.UserInterface;
+﻿using AlmostSpace.Core.Common;
+using AlmostSpace.Things.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -49,7 +50,7 @@ namespace AlmostSpace.Things
             this.font = font;
             this.texture = texture;
 
-            currentDialogue = 20;
+            currentDialogue = 0;
             prevDialogue = currentDialogue;
             printedCurrent = false;
             drawBox = true;
@@ -225,7 +226,7 @@ namespace AlmostSpace.Things
             Vector2 boxPos = new Vector2(Camera.ScreenWidth / 2 - texture.Width / 2, texture.Height / 2 - texture.Height / 2 + 25);
             if (drawBox)
             {
-                textBox.draw(spriteBatch);
+                textBox.Draw(spriteBatch);
             }
         }
 

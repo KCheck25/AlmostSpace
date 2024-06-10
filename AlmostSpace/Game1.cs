@@ -1,4 +1,5 @@
-﻿using AlmostSpace.Things;
+﻿using AlmostSpace.Core.Common;
+using AlmostSpace.Things;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

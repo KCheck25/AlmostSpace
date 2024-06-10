@@ -94,7 +94,7 @@ namespace AlmostSpace.Things.UserInterface
         }
 
         // Draws the textbox to the screen
-        public void draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, position, null, Color.White, 0f, new Vector2(), new Vector2(widthScale, heightScale), SpriteEffects.None, 0f);
             spriteBatch.DrawString(font, text, position + new Vector2(25, 25), Color.White);
