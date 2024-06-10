@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Common
 {
     // This class contains all controls used within the game, allowing them to be easily referenced or changed
     // It also tries to read keybinds from the bindings.txt file, which allows a user to change the controls

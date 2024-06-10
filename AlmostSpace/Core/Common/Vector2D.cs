@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Common
 {
     // A simplified implementation of Vector2 making use of doubles for greater precision
     public struct Vector2D
@@ -35,7 +35,7 @@ namespace AlmostSpace.Things
         }
 
         // Returns a string representing this Vector2D
-        public override String ToString()
+        public override string ToString()
         {
             return "(" + X + ", " + Y + ")";
         }

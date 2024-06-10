@@ -6,7 +6,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things.UserInterface
+namespace AlmostSpace.Core.Unused
 {
     internal class PauseMenu
     {
@@ -23,7 +23,7 @@ namespace AlmostSpace.Things.UserInterface
 
         public void Update()
         {
-            
+
         }
 
         public void Draw(SpriteBatch spriteBatch)

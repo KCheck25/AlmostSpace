@@ -1,4 +1,5 @@
-﻿using AlmostSpace.Things.UserInterface;
+﻿using AlmostSpace.Core.Common;
+using AlmostSpace.Things.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;

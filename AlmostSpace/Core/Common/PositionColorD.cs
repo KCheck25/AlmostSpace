@@ -1,5 +1,4 @@
-﻿using AlmostSpace.Core.Common;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Common
 {
     // An extremely simplified version of VertexPositionColor using Double vectors
     public struct PositionColorD
@@ -16,12 +15,12 @@ namespace AlmostSpace.Things
         public Color Color;
 
         // Constructs a new PositionColorD from the given vector and color
-        public PositionColorD (Vector2D Position, Color Color)
+        public PositionColorD(Vector2D Position, Color Color)
         {
             this.Position = Position;
             this.Color = Color;
         }
-        
+
         // Returns an array of VertexPositionColor objects to be drawn to the screen based on the given array of
         // PositionColorD objects and transform.
         public static VertexPositionColor[] getVertexPositionColorArr(PositionColorD[] points, Matrix transform)

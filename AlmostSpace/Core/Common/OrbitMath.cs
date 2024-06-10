@@ -1,5 +1,4 @@
-﻿using AlmostSpace.Core.Common;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +7,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Common
 {
     // Contains many useful functions for doing math involving orbital mechanics
     public static class OrbitMath
@@ -23,14 +22,14 @@ namespace AlmostSpace.Things
                 // Elliptical orbits
                 double mAnomaly = Math.Sqrt(mu / Math.Pow(semiMajorAxis, 3)) * time * -Math.Sign(aMomentum) + m0; // mean anomaly
                 double eAnomaly = getEccentricAnomaly(mAnomaly, e, mAnomaly); // eccentric anomaly
-                return (eAnomaly == -1) ? -10000 : 2 * Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
+                return eAnomaly == -1 ? -10000 : 2 * Math.Atan(Math.Sqrt((1 + e) / (1 - e)) * Math.Tan(eAnomaly / 2)); // true anomaly
             }
             else
             {
                 // Hyperbolic orbits (https://control.asu.edu/Classes/MAE462/462Lecture05.pdf)
                 double mAnomaly = Math.Sqrt(mu / Math.Pow(-semiMajorAxis, 3)) * time * -Math.Sign(aMomentum) + m0; // hyperbolic mean anomaly
                 double hAnomaly = getEccentricAnomaly(mAnomaly, e, mAnomaly); // hyperbolic anomaly
-                return (hAnomaly == -1) ? -10000 : 2 * Math.Atan(Math.Sqrt((e + 1) / (e - 1)) * Math.Tanh(hAnomaly / 2)); // true anomaly
+                return hAnomaly == -1 ? -10000 : 2 * Math.Atan(Math.Sqrt((e + 1) / (e - 1)) * Math.Tanh(hAnomaly / 2)); // true anomaly
             }
         }
 
@@ -108,7 +107,7 @@ namespace AlmostSpace.Things
 
             return angle;
         }
-        
+
         // Calculates the mean anomaly of an object along its orbit given its true anomaly and eccentricity
         public static double getMeanAnomaly(double e, double trueAnomaly)
         {
@@ -119,14 +118,14 @@ namespace AlmostSpace.Things
             }
             else
             {
-                return (Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(trueAnomaly), -e - Math.Cos(trueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(trueAnomaly) / (1 + e * Math.Cos(trueAnomaly)));
+                return Math.Atan2(-Math.Sqrt(1 - e * e) * Math.Sin(trueAnomaly), -e - Math.Cos(trueAnomaly)) + MathHelper.Pi - e * Math.Sqrt(1 - e * e) * Math.Sin(trueAnomaly) / (1 + e * Math.Cos(trueAnomaly));
             }
         }
 
         // Using vis-viva equation but solving for the semi major axis (a): https://en.wikipedia.org/wiki/Vis-viva_equation
         public static double getSemiMajorAxis(double velocityMagnitude, double mu, double radius)
         {
-            return -1 / ((velocityMagnitude * velocityMagnitude / mu) - (2 / radius));
+            return -1 / (velocityMagnitude * velocityMagnitude / mu - 2 / radius);
         }
 
         // Calculates the period of an object's orbit based on its semi major axis
@@ -139,8 +138,8 @@ namespace AlmostSpace.Things
         public static Vector2D calcEccentricity(Vector2D position, Vector2D velocity, double angularMomentum, double mu)
         {
             double radius = position.Length();
-            double eX = (velocity.Y * angularMomentum) / mu - position.X / radius;
-            double eY = (-velocity.X * angularMomentum) / mu - position.Y / radius;
+            double eX = velocity.Y * angularMomentum / mu - position.X / radius;
+            double eY = -velocity.X * angularMomentum / mu - position.Y / radius;
             return new Vector2D(eX, eY);
         }
 

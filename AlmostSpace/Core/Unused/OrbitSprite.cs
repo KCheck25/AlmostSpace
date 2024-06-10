@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Unused
 {
     // Simple sprite to serve as one unit of an orbit representation
     internal class OrbitSprite

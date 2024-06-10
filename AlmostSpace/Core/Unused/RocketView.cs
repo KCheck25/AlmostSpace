@@ -1,11 +1,12 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using AlmostSpace.Things;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlmostSpace.Things
+namespace AlmostSpace.Core.Unused
 {
     internal class RocketView
     {
