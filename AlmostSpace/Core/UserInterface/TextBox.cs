@@ -2,11 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlmostSpace.Things.UserInterface
 {
@@ -95,7 +90,7 @@ namespace AlmostSpace.Things.UserInterface
                 } 
                 else if ((int)key == 13)
                 {
-                    Debug.WriteLine(text);
+                    //Debug.WriteLine(text);
                     command(text);
                     text = "";
                 }

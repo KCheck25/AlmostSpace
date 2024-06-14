@@ -1,12 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlmostSpace.Core.Common
 {
@@ -106,7 +101,7 @@ namespace AlmostSpace.Core.Common
                     {
                         continue;
                     }
-                    Debug.WriteLine(key);
+                    //Debug.WriteLine(key);
 
                     switch (tokens[0])
                     {

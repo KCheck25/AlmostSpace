@@ -1,14 +1,7 @@
-﻿using Microsoft.VisualBasic;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections;
 using AlmostSpace.Core.Common;
 
 namespace AlmostSpace.Things
@@ -168,7 +161,7 @@ namespace AlmostSpace.Things
                             wasPhysics = bool.Parse(components[1]);
                             break;
                         case "Orbiting Planet":
-                            Debug.Write(components[1]);
+                            //Debug.Write(components[1]);
                             foreach (Planet planet in planets)
                             {
                                 if (planet.getName().Equals(components[1]))
@@ -209,7 +202,7 @@ namespace AlmostSpace.Things
                 return;
             }
 
-            Debug.WriteLine("AKHDSKGHSDJKGKDJGKJHGDSKJGHDKJSHGDKJSGHDKJSGDKSJDGFJKSDGFKSH");
+            //Debug.WriteLine("AKHDSKGHSDJKGKDJGKJHGDSKJGHDKJSHGDKJSGHDKJSGDKSJDGFJKSDGFKSH");
 
             //clock.setTimeFactor(0);
 
@@ -452,7 +445,7 @@ namespace AlmostSpace.Things
             m0 = OrbitMath.getMeanAnomaly(e, currentTrueAnomaly);
             if (name.Equals("Zoomy"))
             {
-                Debug.WriteLine(e);
+                //Debug.WriteLine(e);
             }
         }
 

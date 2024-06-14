@@ -3,14 +3,7 @@ using AlmostSpace.Things.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
@@ -65,6 +58,7 @@ namespace AlmostSpace.Things
             noTab.Add(13);
             noTab.Add(15);
             noTab.Add(18);
+            noTab.Add(19);
 
             textBox = new DisplayTextBox(font, texture, 1000, new Vector2(Camera.ScreenWidth / 2, 300), dialogue[currentDialogue]);
         }
@@ -215,7 +209,7 @@ namespace AlmostSpace.Things
             if (currentDialogue != prevDialogue)
             {
                 textBox.setText(dialogue[currentDialogue]);
-                Debug.WriteLine("NEXT");
+                //Debug.WriteLine("NEXT");
             }
             prevDialogue = currentDialogue;
         }

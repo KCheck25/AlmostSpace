@@ -6,13 +6,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlmostSpace.Things
 {
@@ -125,6 +120,10 @@ namespace AlmostSpace.Things
                 backButton.Update();
                 int maxButtons = (Camera.ScreenHeight / 100) - 1;
                 int maxPage = fileSelectButtons.Length / maxButtons;
+                if (fileSelectButtons.Length % maxButtons == 0)
+                {
+                    maxPage -= 1;
+                }
                 if (pageOnLoadScreen > maxPage)
                 {
                     pageOnLoadScreen = maxPage;
@@ -228,6 +227,10 @@ namespace AlmostSpace.Things
                 int maxButtons = (Camera.ScreenHeight / 100) - 1;
                 int height = 100;
                 int maxPage = fileSelectButtons.Length / maxButtons;
+                if (fileSelectButtons.Length % maxButtons == 0)
+                {
+                    maxPage -= 1;
+                }
                 if (pageOnLoadScreen > maxPage)
                 {
                     pageOnLoadScreen = maxPage;
@@ -316,8 +319,8 @@ namespace AlmostSpace.Things
             loadButton.setPosition(new Vector2(Camera.ScreenWidth / 2 + (buttonTexture.Width + 25) / 2, Camera.ScreenHeight / 2.5f));
             tutorialButton.setPosition(startNewButton.getPosition() + new Vector2(0, 100));
             aboutButton.setPosition(loadButton.getPosition() + new Vector2(0, 100));
-            exitButton.setPosition(tutorialButton.getPosition() + new Vector2(0, 100));
-            controlsButton.setPosition(aboutButton.getPosition() + new Vector2(0, 100));
+            exitButton.setPosition(aboutButton.getPosition() + new Vector2(0, 100));
+            controlsButton.setPosition(tutorialButton.getPosition() + new Vector2(0, 100));
             //loadButton.Resize();
             //exitButton.Resize();
             selectFilename.Resize();

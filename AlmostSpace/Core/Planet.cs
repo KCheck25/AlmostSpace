@@ -2,12 +2,6 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Xml;
-using System.Reflection.Metadata;
 using Microsoft.Xna.Framework.Input;
 using AlmostSpace.Core.Common;
 
@@ -45,7 +39,7 @@ namespace AlmostSpace.Things
             base.Update(new Vector2D());
 
             soi = getSemiMajorAxis() * Math.Pow(mass / orbiting.getMass(), 0.4);
-            Debug.WriteLine(soi);
+            //Debug.WriteLine(soi);
 
             orbiting.addChild(this);
         }
@@ -148,7 +142,7 @@ namespace AlmostSpace.Things
                             planetRadius = double.Parse(components[1]);
                             break;
                         case "Orbiting Planet":
-                            Debug.Write(components[1]);
+                            //Debug.Write(components[1]);
                             foreach (Planet planet in planets)
                             {
                                 if (planet.getName().Equals(components[1]))
