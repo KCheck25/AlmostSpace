@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace AlmostSpace.Things
 {
@@ -69,6 +70,8 @@ namespace AlmostSpace.Things
         public static bool isTutorial;
         static string saveFile = "savedata.txt";
 
+        bool windows;
+
         Tutorial tutorial;
 
         // Creates a new MapView object using the given content manager for loading in files, graphics device,
@@ -83,6 +86,7 @@ namespace AlmostSpace.Things
             songs = new List<Song>();
             rand = new Random();
             songEndTime = 0;
+            windows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
 
         // Loads necessary image and sound files, and creates other important objects that will be used later
@@ -98,14 +102,28 @@ namespace AlmostSpace.Things
             planetTextures.Add(Content.Load<Texture2D>("Sun"));
             planetTextures.Add(Content.Load<Texture2D>("Mars"));
 
-            navBallFrameTexture = Content.Load<Texture2D>("NavBallTextures\\NavBallFrame");
-            progradeTexture = Content.Load<Texture2D>("NavBallTextures\\ProgradeSymbol");
-            retrogradeTexture = Content.Load<Texture2D>("NavBallTextures\\RetrogradeSymbol");
-            radialInTexture = Content.Load<Texture2D>("NavBallTextures\\RadialInSymbol");
-            radialOutTexture = Content.Load<Texture2D>("NavBallTextures\\RadialOutSymbol");
+            if (windows)
+            {
+                navBallFrameTexture = Content.Load<Texture2D>("NavBallTextures\\NavBallFrame");
+                progradeTexture = Content.Load<Texture2D>("NavBallTextures\\ProgradeSymbol");
+                retrogradeTexture = Content.Load<Texture2D>("NavBallTextures\\RetrogradeSymbol");
+                radialInTexture = Content.Load<Texture2D>("NavBallTextures\\RadialInSymbol");
+                radialOutTexture = Content.Load<Texture2D>("NavBallTextures\\RadialOutSymbol");
 
-            throttleTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBar");
-            throttleFrameTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBox");
+                throttleTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBar");
+                throttleFrameTexture = Content.Load<Texture2D>("ThrottleTextures\\ThrottleBox");
+            } 
+            else
+            {
+                navBallFrameTexture = Content.Load<Texture2D>("NavBallTextures/NavBallFrame");
+                progradeTexture = Content.Load<Texture2D>("NavBallTextures/ProgradeSymbol");
+                retrogradeTexture = Content.Load<Texture2D>("NavBallTextures/RetrogradeSymbol");
+                radialInTexture = Content.Load<Texture2D>("NavBallTextures/RadialInSymbol");
+                radialOutTexture = Content.Load<Texture2D>("NavBallTextures/RadialOutSymbol");
+
+                throttleTexture = Content.Load<Texture2D>("ThrottleTextures/ThrottleBar");
+                throttleFrameTexture = Content.Load<Texture2D>("ThrottleTextures/ThrottleBox");
+            }
 
             buttonTexture = Content.Load<Texture2D>("Button1");
 
@@ -170,7 +188,8 @@ namespace AlmostSpace.Things
             // Break data up into chunks separated by the word "Type:"
             string line;
             List<string> data = new List<string>();
-            using (StreamReader readtext = new StreamReader("Saves\\" + saveFile))
+            string fileToRead = windows ? "Saves\\" + saveFile : "Saves/" + saveFile;
+            using (StreamReader readtext = new StreamReader(fileToRead))
             {
                 while (!readtext.EndOfStream)
                 {
@@ -374,7 +393,8 @@ namespace AlmostSpace.Things
         {
             Directory.CreateDirectory("Saves");
             string toSave = clock.getSaveData() + camera.getSaveData() + planets[0].getSaveData() + rocket.getSaveData();
-            using (StreamWriter writetext = new StreamWriter("Saves\\" + saveFile))
+            string fileToWrite = windows ? "Saves\\" + saveFile : "Saves/" + saveFile;
+            using (StreamWriter writetext = new StreamWriter(fileToWrite))
             {
                 writetext.WriteLine(toSave);
             }

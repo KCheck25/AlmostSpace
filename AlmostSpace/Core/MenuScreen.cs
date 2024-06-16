@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Media;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace AlmostSpace.Things
 {
@@ -47,12 +48,15 @@ namespace AlmostSpace.Things
 
         int pageOnLoadScreen = 0;
 
+        bool windows;
+
         // Creates a new MenuScreen object from the given ContentManager, font to use for buttons and UI, and command to run to quit the game
         public MenuScreen(ContentManager Content, SpriteFont uiFont, Action exitCommand)
         {
             this.Content = Content;
             this.uiFont = uiFont;
             this.exitCommand = exitCommand;
+            windows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
 
         // Loads necessary inage and sound files
@@ -190,7 +194,7 @@ namespace AlmostSpace.Things
             
             for (int i = 0; i < saves.Length; i++)
             {
-                string buttonText = saves[i].Split("\\")[1].Split(".")[0];
+                string buttonText = windows ? saves[i].Split("\\")[1].Split(".")[0] : saves[i].Split("/")[1].Split(".")[0];
                 fileSelectButtons[i] = new Button(buttonText, uiFont, buttonTexture, () => loadFile(buttonText), new Vector2());
                 deleteButtons[i] = new Button("", uiFont, deleteButtonTexture, () => deleteFile(buttonText), new Vector2());
             }
@@ -209,7 +213,8 @@ namespace AlmostSpace.Things
         // Deletes the given save file and regenerates the list of save files
         public void deleteFile(string file)
         {
-            File.Delete("Saves\\" + file + ".txt");
+            string fileToDelete = windows ? "Saves\\" + file + ".txt" : "Saves/" + file + ".txt";
+            File.Delete(fileToDelete);
             loadGame();
         }
 
